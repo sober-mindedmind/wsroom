@@ -56,7 +56,6 @@ public class ChatController
 	}
 		
 	@MessageMapping("/chat/{room}")
-	@Transactional
 	public ChatMessageDto handleMessage(@Payload ChatMessageDto messageDto, 
 									 	@DestinationVariable("room") String roomName,
 									 	UsernamePasswordAuthenticationToken authToken)
