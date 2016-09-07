@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"></meta>
+<title>Insert title here</title>
+<link rel="stylesheet" href="css/bootstrap.min.css"/>
+<script type="text/javascript" src="js/stomp.js"></script>
+<script type="text/javascript" src="js/angular.min.js"></script>
+<script type="text/javascript" src="js/app/wsconnector.js"></script>
+<script type="text/javascript" src="js/app/chat_module.js"></script>
+<script type="text/javascript" src="js/app/chat_service.js"></script>
+<script type="text/javascript" src="js/app/chat_controller.js"></script>
+<script type="text/javascript" src="js/jquery-3.1.0.min.js" ></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</head>
+<body ng-app="ChatModule" >
+	Welcome to the online chat home page
+	
+	The list of your's rooms 
+	<div ng-controller="ChatController as ct" style="height: 100%;;width: 100%;">
+		<div class="navbar">
+			<div class="collapse navbar-collapse">
+			      <ul class="nav navbar-nav">
+			        <li class="active"><a href="#" ng-click="ct.fetchAllRooms()" data-toggle="modal" data-target="#allRoomsModal" >Rooms</a></li>
+			        <li class="active"><a href="/rooms?form" >Create room</a></li>	       
+			      </ul>
+			      <ul class="nav navbar-nav navbar-right">			      	
+				        <li>
+				        	<a href="/logout">
+					        	<span class="glyphicon glyphicon-log-out"></span> 
+					        	Log out <div th:text="${#authentication.name}" /> 
+				        	</a>
+				        </li>
+			      </ul>
+		    </div>
+
+			<div class="modal fade" id="allRoomsModal" role="dialog">
+				<div class="modal-dialog" >
+
+					<!-- Modal content-->
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal">&times;</button>
+							<h4 class="modal-title">All rooms</h4>
+						</div>
+						<div class="modal-body">
+							<ul ng-repeat="room in allRooms">
+							<div class="form-group">
+								<li style="display:inline-block" class="color:orange">											
+									<input style="display:inline-block" type="checkbox" ng-model="room.checked" />	
+									
+									<img style="display:inline-block" ng-src="/rooms/{{room.name}}/image" 
+										onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
+																		
+									<h4 style="display:inline-block" >{{room.name}} ({{room.usersCount}}) [{{room.description}}]</h4>							
+									<span style="display:inline-block" ng-show="room.hasPassword" class="glyphicon glyphicon-lock"/>									
+									<div ng-show="room.checked &amp;&amp; room.hasPassword">							
+										<h5><small>This room is under password. Type password in order to connect</small></h5>
+										<input class="form-control" type="password" ng-model="room.password" />
+									</div>
+								</li> 
+							</div> 	
+							</ul>
+							<button type="button" class="btn btn-default" ng-click="ct.subscribeOnRooms()" data-dismiss="modal"> Apply </button>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						</div>
+					</div>
+
+				</div>
+			</div>		
+		</div>
+		<div class="container-fluid">
+			<div class="row content" ng-show="visibleChat">
+    			<div class="col-sm-3">
+    				<h4>My Rooms</h4>
+    				<hr></hr>
+					<ul class="nav nav-pills nav-stacked" ng-repeat="room in rooms">
+				        <li class="active">				        	
+				        	<h4 ng-click="ct.onRoomClick(room)">{{room.obj.name}} ({{room.users.length}}) [{{room.obj.description}}	]</h4> 	        	
+				        	<div ng-show="room.visible"> 	        	
+					        	<button type="button" class="btn btn-primary" ng-click="ct.subscribe(room.obj.name)"> connect </button>
+					        	<button type="button" class="btn btn-warning" ng-click="ct.unsubscribe(room.obj.name)"> unsubscribe </button>		        	
+					        	<h5> Connected users </h5>
+					        	<ul class="nav nav-pills nav-stacked" ng-repeat="user in room.users">
+					 				<li class="active">
+					 					<img ng-src="/users/{{user}}/image" onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
+					 					<h5>{{user}}</h5>
+					 				</li>  	
+					   			</ul> 
+				   			</div>    	 		
+				        </li>
+				   </ul>
+				</div> 	 
+				<div class="col-sm-9">
+      				<h4><small>RECENT MESSAGES</small></h4>
+      				<hr></hr>
+      				<div style="overflow: scroll; width: 100%;height: 80%;border: 1px solid red;min-height:300px">
+	      				<ul ng-repeat="message in currentRoom.messages">
+						 	<li class="active">
+						 		<img ng-src="/users/{{message.owner}}/image" 
+						 			onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
+						 		<h6>{{message.owner}} ({{message.serverTime}}): {{message.text}}</h6>
+						 	</li>  	
+						</ul>
+					</div>		
+					<p>
+					<input style="width: 100%;" id = "text" ng-model="messageContent" ng-keyup="$event.keyCode == 13 ? ct.sendMessage() : ct.startTyping()" />
+					<button  class="btn btn-default" type="button" ng-click="ct.sendMessage()"> SEND </button>
+					</p>
+					<div class="alert alert-info fade in" ng-show="notification != ''">
+					    <strong>{{notification}}</strong>
+			  		</div>				
+				</div>  
+			</div>		
+			
+		</div>
+		
+		
+	<!-- 	<footer class="container-fluid text-center" style="background-color: #555;color: white; padding: 15px;">
+  			<h4>{{notification}}</h4>
+		</footer>  -->   
+	</div>	
+	
+</body>
+</html>

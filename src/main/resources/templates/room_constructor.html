@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"></meta>
+<title>Insert title here</title>
+<link rel="stylesheet" href="css/bootstrap.min.css"/>
+<script type="text/javascript" src="js/jquery-3.1.0.min.js" ></script>
+<script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+	<form th:action="@{/rooms}" method="post" th:object="${room}" enctype="multipart/form-data">
+	
+            <div class="form-group">
+	             <label for="name">Room name:</label>
+	             <input id="name" type="text" class="form-control" th:field="*{name}" placeholder="Enter room name"	/>
+	             <p th:if="${#fields.hasErrors('name')}"  th:errors="*{name}" style="color:red;"> Incorrect name </p>
+            </div>
+            
+            <div class="form-group">
+	             <label for="pwd">Password:</label>
+	             <input id="pwd" type="password" class="form-control" th:field="*{password}" placeholder="Room password, if any" />
+            </div>       
+            
+            <div class="form-group">
+	             <label for="desc">Description:</label>
+	             <input id="desc" type="text" class="form-control" th:field="*{description}" placeholder="Room descriptiom" />
+            </div>       
+            
+            <div class="form-group">
+	             <label for="file">Profile image:</label>
+	             <input id="file" type="file" name="image" />
+            </div> 
+            
+            <div class="form-group">
+             	 <label for="active">Active:</label>
+	             <input id="active" type="checkbox" th:field="*{active}" />
+            </div> 
+            
+            <div class="form-group">
+                        
+                <label for="allowed">Allowed users:</label>
+	            <tr id="allowed" th:each="user,status : ${allUsers}">
+	            
+	            	<input type="checkbox" th:field="${room.allowedUsers[__${status.index}__]}" th:value="${user.id}" th:text="${user.name}" /> 
+	            	
+	            	
+	            	<!-- <input type="checkbox"  name="users[]" th:value="${user.id}" th:text="${user.name}" /> -->         		     
+		        	
+		      	</tr>        
+	      	</div> 
+            <div class="form-group">
+             	<input class="btn btn-default" type="submit" value="Create room"/>
+            </div>
+    </form>
+</div>    
+</body>
+</html>
