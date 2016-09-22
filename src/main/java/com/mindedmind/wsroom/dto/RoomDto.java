@@ -1,4 +1,4 @@
-package com.mindedmind.wsroom.web.dto;
+package com.mindedmind.wsroom.dto;
 
 import static java.util.stream.Collectors.toList;
 

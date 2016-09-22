@@ -1,6 +1,7 @@
 package com.mindedmind.wsroom.service.impl;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,9 +29,11 @@ public class RoomServiceImpl implements RoomService
 		return roomRepository.findOne(id);
 	}
 
-	@Override public Room findByName(String name)
+	@Transactional
+	@Override public Room findByName(String name, String owner)
 	{
-		return roomRepository.findByName(name);
+		return owner == null ? roomRepository.findByName(name) 
+							 : roomRepository.findRoomOfOwner(name, owner);
 	}
 
 	@Override public void save(Room room)
@@ -72,6 +75,12 @@ public class RoomServiceImpl implements RoomService
 	@Override public byte[] loadRoomImage(String name)
 	{
 		return roomRepository.findByName(name).getPhoto();
+	}
+
+	@Transactional
+	@Override public Set<Room> findRoomsWhereUserIsOwner(String name)
+	{
+		return roomRepository.findRoomsWhereUserIsOwner(name);
 	}
 
 }

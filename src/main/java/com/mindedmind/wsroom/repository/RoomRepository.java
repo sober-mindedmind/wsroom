@@ -2,6 +2,7 @@ package com.mindedmind.wsroom.repository;
 
 
 import java.util.Collection;
+import java.util.Set;
 
 import javax.persistence.QueryHint;
 
@@ -17,6 +18,10 @@ public interface RoomRepository extends JpaRepository<Room, Long>
 	
 	@Query("select r from Room r where r.name = :name")
 	Room findByName(@Param("name") String name);
+	
+	@Query("select distinct r from Room r left join fetch r.allowedUsers join r.owner o "
+			+ " where r.name = :name and r.owner.name = :owner")
+	Room findRoomOfOwner(@Param("name") String name, @Param("owner") String owner);
 	
 	@Query("delete from Room r where r.name = :name")
 	void deleteByName(@Param("name") String name);
@@ -34,10 +39,13 @@ public interface RoomRepository extends JpaRepository<Room, Long>
 			+ " where (subscribedUser is null "
 			+ " or r.id not in (select r.id from Room r join r.subscribedUsers u where u.name = :name))"
 			+ " and (allowedUser is null or allowedUser.name = :name)")	
-	Collection<Room> allRoomsVisibleForUser(@Param("name") String userName);
+	Set<Room> allRoomsVisibleForUser(@Param("name") String userName);
 	
 	@Query("select r from Room r join r.subscribedUsers u where u.name = :userName")
-	Collection<Room> findUserRooms(@Param("userName") String userName);
+	Set<Room> findUserRooms(@Param("userName") String userName);
+	
+	@Query("select r from Room r join r.owner o on o.name = :owner")
+	Set<Room> findRoomsWhereUserIsOwner(@Param("owner") String owner);
 	
 	//@Query("delete from Room r left join r.subscribedUsers u where r.name = :roomName and u.name = :userName")
 	//void unsubscribeUser(@Param("roomName") String roomName, @Param("userName") String userName);

@@ -1,5 +1,8 @@
 package com.mindedmind.wsroom.service.impl;
 
+import static com.mindedmind.wsroom.wsevent.DestinationPath.USER_JOIN_TOPIC_DEST;
+import static com.mindedmind.wsroom.wsevent.DestinationPath.USER_LEAVE_TOPIC_DEST;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,12 +11,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mindedmind.wsroom.domain.Message;
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
+import com.mindedmind.wsroom.dto.UserDto;
 import com.mindedmind.wsroom.repository.MessageRepository;
 import com.mindedmind.wsroom.repository.UserRepository;
 import com.mindedmind.wsroom.service.ChatService;
@@ -22,28 +27,32 @@ import com.mindedmind.wsroom.service.RoomService;
 @Service
 public class ChatServiceImpl implements ChatService
 {	
-	private ConcurrentHashMap<String, Set<String>> roomsOnActiveUsers = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, Set<String>> roomsOnActiveUsers = new ConcurrentHashMap<>();
 		
-	private RoomService roomService;
+	private final RoomService roomService;
 	
-	private MessageRepository messageRepository;
+	private final MessageRepository messageRepository;
 		
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
+	
+	private final SimpMessagingTemplate messagingTemplate;
 	
 	@Autowired
 	public ChatServiceImpl(RoomService roomService, 
 						   MessageRepository messageRepository,
-						   UserRepository userRepository)
+						   UserRepository userRepository,
+						   SimpMessagingTemplate messagingTemplate)
 	{
 		this.roomService	   = roomService;
 		this.messageRepository = messageRepository;
 		this.userRepository    = userRepository;
+		this.messagingTemplate = messagingTemplate;
 	}
 
 	@Transactional
 	@Override public void saveMessage(Message msg, String roomName)
 	{
-		msg.setRoom(roomService.findByName(roomName));
+		msg.setRoom(roomService.findByName(roomName, null));
 		messageRepository.save(msg);
 	}
 
@@ -54,16 +63,20 @@ public class ChatServiceImpl implements ChatService
 
 	@Transactional
 	@Override public void unsubscribe(String userName, String room)
-	{
-		deactiveUser(userName);
+	{		
 		User user = userRepository.findUserByName(userName);	
-		roomService.findByName(room).getSubscribedUsers().remove(user);
+		roomService.findByName(room, null).getSubscribedUsers().remove(user);
+		deactiveUser(userName);
 	}
 
 	@Override public void deactiveUser(String user, String room)
 	{
-		assert roomsOnActiveUsers.contains(room);
-		roomsOnActiveUsers.get(room).remove(user);
+		assert roomsOnActiveUsers.contains(room);		
+		Set<String> users = roomsOnActiveUsers.get(room);
+		if (users != null && users.remove(user))
+		{
+			sendLeave(user, room);
+		}		
 	}
 
 	@Override public void activeUser(String user, String room)
@@ -72,14 +85,16 @@ public class ChatServiceImpl implements ChatService
 				(a) -> Collections.newSetFromMap(new ConcurrentHashMap<>()));
 		assert users != null;
 		users.add(user);
+		messagingTemplate.convertAndSend(USER_JOIN_TOPIC_DEST + room, new UserDto(user));		
 	}
-
+		
 	@Override public Collection<String> deactiveUser(String user)
 	{
 		List<String> rooms = new ArrayList<>();
-		roomsOnActiveUsers.forEach((key, set) -> {
-			if (set.remove(user)) 
-				rooms.add(key);
+		roomsOnActiveUsers.forEach((room, users) -> {
+			if (users.remove(user)) 
+				rooms.add(room);
+				sendLeave(user, room);
 			});
 		return rooms;
 	}
@@ -87,7 +102,7 @@ public class ChatServiceImpl implements ChatService
 	@Transactional
 	@Override public void subscribe(String userName, String roomName, String password)
 	{
-		Room room = roomService.findByName(roomName);
+		Room room = roomService.findByName(roomName, null);
 		
 		/* verifying password */
 		if (room.getPassword() != null && !room.getPassword().equals(password))
@@ -97,5 +112,19 @@ public class ChatServiceImpl implements ChatService
 		
 		User user = userRepository.findUserByName(userName);		
 		room.getSubscribedUsers().add(user);
+	}
+
+	@Override public void deactiveAll(String roomName)
+	{
+		Set<String> users = roomsOnActiveUsers.remove(roomName);
+		if (users != null)
+		{
+			users.forEach(user -> sendLeave(user, roomName));
+		}
+	}
+	
+	private void sendLeave(String user, String roomName)
+	{
+		messagingTemplate.convertAndSend(USER_LEAVE_TOPIC_DEST + roomName, new UserDto(user));	
 	}
 }

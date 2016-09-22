@@ -1,11 +1,17 @@
 package com.mindedmind.wsroom.web;
 
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
+import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
@@ -31,7 +38,7 @@ import com.mindedmind.wsroom.util.ImageUtils;
 
 @Controller
 @RequestMapping(value = "/rooms")
-@SessionAttributes("room")
+@SessionAttributes({"room", "roomName"})
 public class RoomFormController
 {	
 	private static Logger LOG = LoggerFactory.getLogger(RoomFormController.class);
@@ -39,31 +46,37 @@ public class RoomFormController
 	private final UserService userService;
 	
 	private final RoomService roomService;
-		
+	
+	private final ChatService chatService;
+	
 	@Autowired
 	public RoomFormController(UserService userService,
-						  	  RoomService roomService)
+						  	  RoomService roomService,
+						  	  ChatService chatService)
 	{
 		this.userService = userService;
 		this.roomService = roomService;
+		this.chatService = chatService;
 	}	
-	
+
 	@PostMapping
-	public String createRoom(@Valid @ModelAttribute("room") Room room,
-							 BindingResult result,
-							 @RequestParam(name = "image", required = false) MultipartFile photo,
-							 UsernamePasswordAuthenticationToken authToken,
-							 SessionStatus sessionStatus) throws IOException
+	public String createOrUpdateRoom(@Valid @ModelAttribute("room") Room room,
+									 BindingResult result,
+									 @RequestParam(name = "users[]", required = false) Long[] allowedUsersId,
+									 @RequestParam(name = "image", required = false) MultipartFile photo,
+									 UsernamePasswordAuthenticationToken authToken,
+									 SessionStatus sessionStatus,
+									 HttpSession session) throws IOException
 	{
 		if (result.hasErrors() || !ImageUtils.isValidImage(photo, 100000))
 		{
 			return "/room_constructor";
-		}
+		}	
 		User owner = ((UserDetailsImpl) authToken.getPrincipal()).getUser();
 		room.setOwner(owner);
-		if (room.getAllowedUsers() != null)
-		{
-			room.getAllowedUsers().removeIf(e -> e == null);
+		if (!isEmpty(allowedUsersId))
+		{			
+			room.setAllowedUsers(userService.findUsers(allowedUsersId));			
 			room.getAllowedUsers().add(owner);
 		}
 		if (photo != null)
@@ -71,21 +84,47 @@ public class RoomFormController
 			room.setPhoto(photo.getBytes());
 		}
 		roomService.save(room);
+		
+		/* if room has been updated then we must deactivate all users in this room, if any */
+		String oldRoomName = (String) session.getAttribute("roomName");		
+		if (oldRoomName != null)
+		{
+			chatService.deactiveAll(oldRoomName);
+		}
+		
 		sessionStatus.setComplete();
-		LOG.debug("Room '{}' has beed constructed", room.getName());
+		LOG.debug("Room '{}' has beed constructed/updated", room.getName());
 		return "redirect:/index";
 	}
-		
+	
 	@GetMapping(params = "form")
-	public String roomConstructor(Model model, Principal principal)
+	public String roomConstructor(Model model, 
+								  @RequestParam(value = "name", required = false) String roomName, 
+								  Principal principal)
 	{		
-		Room room = new Room();
-		room.setAllowedUsers(new ArrayList<User>());
-		room.setName("Room_" + principal.getName());
-		room.setActive(true);		
-		model.addAttribute("room" , room);
-		model.addAttribute("allUsers" , userService.findAll());
+		Room room;		
+		if (roomName == null)
+		{
+			room = new Room();
+			room.setName("Room_" + principal.getName());
+			room.setActive(true);
+		}
+		else
+		{
+			room = roomService.findByName(roomName , principal.getName());
+			model.addAttribute("roomName" , room.getName());
+		}				
+		model.addAttribute("room" , room);		
+		model.addAttribute("allUsers" , new ArrayList<>(userService.findAll()));		
 		return "/room_constructor";
 	}	
+	
+	@GetMapping(params = "myrooms")
+	public String userRoomsView(Model model, Principal principal)
+	{
+		Set<Room> rooms = roomService.findRoomsWhereUserIsOwner(principal.getName());
+		model.addAttribute("rooms" , rooms);
+		return "myrooms";
+	}
 	
 }

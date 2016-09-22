@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.mindedmind.wsroom.domain.Message;
 import com.mindedmind.wsroom.domain.User;
+import com.mindedmind.wsroom.dto.ChatMessageDto;
+import com.mindedmind.wsroom.dto.RoomDto;
+import com.mindedmind.wsroom.dto.UserDto;
 import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.SubscriptionException;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
-import com.mindedmind.wsroom.web.dto.ChatMessageDto;
-import com.mindedmind.wsroom.web.dto.RoomDto;
-import com.mindedmind.wsroom.web.dto.UserDto;
 
 @Controller
 public class ChatController

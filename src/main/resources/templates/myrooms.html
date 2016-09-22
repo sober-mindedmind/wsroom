@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"></meta>
+<title>Insert title here</title>
+<link rel="stylesheet" href="css/bootstrap.min.css"/>
+<script type="text/javascript" src="js/jquery-3.1.0.min.js" ></script>
+<script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+      <label for="rooms">My rooms:</label>
+      <tr id="rooms" th:each="room : ${rooms}">
+      		<p><a href="index" th:href="@{/rooms(form,name=${room.name})}" th:text="${room.name}"></a></p>	  	
+	  </tr>
+</body>
+</html>

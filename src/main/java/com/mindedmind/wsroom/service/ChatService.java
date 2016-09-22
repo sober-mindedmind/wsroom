@@ -25,4 +25,6 @@ public interface ChatService
 	void subscribe(String user, String roomName, String password);
 	
 	void unsubscribe(String user, String room);
+	
+	void deactiveAll(String roomName);
 }

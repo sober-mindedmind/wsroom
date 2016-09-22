@@ -35,12 +35,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
+import com.mindedmind.wsroom.dto.ChatMessageDto;
+import com.mindedmind.wsroom.dto.RoomDto;
 import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
-import com.mindedmind.wsroom.web.dto.ChatMessageDto;
-import com.mindedmind.wsroom.web.dto.RoomDto;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ChatController.class)

@@ -37,20 +37,18 @@
 	             <input id="active" type="checkbox" th:field="*{active}" />
             </div> 
             
-            <div class="form-group">
-                        
+            <div class="form-group">                        
                 <label for="allowed">Allowed users:</label>
-	            <tr id="allowed" th:each="user,status : ${allUsers}">
-	            
-	            	<input type="checkbox" th:field="${room.allowedUsers[__${status.index}__]}" th:value="${user.id}" th:text="${user.name}" /> 
-	            	
-	            	
-	            	<!-- <input type="checkbox"  name="users[]" th:value="${user.id}" th:text="${user.name}" /> -->         		     
-		        	
-		      	</tr>        
+	            <tr id="allowed" th:each="user,status : ${allUsers}">	            
+	            	<p><input type="checkbox"
+	            			name="users[]"						  
+	            		    th:value="${user.id}" 
+	            		    th:text="${user.name}"
+	            		    th:checked="${#lists.contains(room.allowedUsers, user)}" /></p>
+		      	</tr> 
 	      	</div> 
             <div class="form-group">
-             	<input class="btn btn-default" type="submit" value="Create room"/>
+             	<input class="btn btn-default" type="submit" value="Create/Update room"/>
             </div>
     </form>
 </div>    

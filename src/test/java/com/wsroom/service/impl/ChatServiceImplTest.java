@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.repository.MessageRepository;
@@ -34,7 +35,10 @@ public class ChatServiceImplTest
 
 	@Mock
 	private UserRepository userRepository;
-
+		
+	@Mock
+	private SimpMessagingTemplate stompTemplate;
+	
 	@Test
 	public void activeUser_IsUserActiveted_True()
 	{		
@@ -45,7 +49,7 @@ public class ChatServiceImplTest
 	@Test
 	public void unsubscribe_UserIsUnsubscribed_True()
 	{		
-		when(roomService.findByName("room1")).thenReturn(new Room());		
+		when(roomService.findByName("room1", null)).thenReturn(new Room());		
 		chatServiceImpl.activeUser("user" , "room1");		
 		chatServiceImpl.unsubscribe("user" , "room1");
 		assertTrue(chatServiceImpl.getActiveUsers("room1").isEmpty());
@@ -75,7 +79,7 @@ public class ChatServiceImplTest
 		Room room = new Room();
 		room.setName("room1");
 		room.setPassword("1");		
-		when(roomService.findByName("room1")).thenReturn(room);		
+		when(roomService.findByName("room1", null)).thenReturn(room);		
 		chatServiceImpl.subscribe("user1", "room1", "2");
 	}
 }

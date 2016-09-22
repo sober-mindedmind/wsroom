@@ -5,6 +5,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +23,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
+import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
@@ -37,7 +40,10 @@ public class RoomControllerTest
 		
 	@MockBean
 	private UserService userService;
-		
+	
+	@MockBean
+	private ChatService chatService;
+	
 	@Test
 	public void createRoom_IsRoomSuccessfullySaved_True() throws Exception
 	{
@@ -45,9 +51,18 @@ public class RoomControllerTest
 		owner.setId(0L);
 		owner.setName("user");
 		owner.setPassword("1");
-				
+		
+		User user1 = new User();
+		user1.setId(1L);
+		user1.setName("user1");
+		User user2 = new User();
+		user2.setId(2L);
+		user2.setName("user2");
+		
+		when(userService.findUsers(new Long[] {1L, 2L})).thenReturn(new HashSet<>(Arrays.asList(user1, user2)));
+		
 		Room sessionRoom = new Room();
-		sessionRoom.setAllowedUsers(new ArrayList<User>());
+		sessionRoom.setAllowedUsers(new HashSet<User>());
 		
 		UsernamePasswordAuthenticationToken authToken = Mockito.mock(UsernamePasswordAuthenticationToken.class);
 		when(authToken.getPrincipal()).thenReturn(new UserDetailsImpl(owner));
@@ -56,8 +71,7 @@ public class RoomControllerTest
 				.param("name" , "room1")
 				.param("password" , "password")
 				.param("description" , "the room")
-				.param("allowedUsers[0].id" , "1")
-				.param("allowedUsers[1].id" , "2")
+				.param("users[]" , "1", "2")				
 				.principal(authToken)
 				.sessionAttr("room" , sessionRoom)
 				).andExpect(MockMvcResultMatchers.view().name("redirect:/index"));
