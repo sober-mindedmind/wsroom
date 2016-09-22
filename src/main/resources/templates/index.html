@@ -14,15 +14,14 @@
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
 </head>
 <body ng-app="ChatModule" >
-	Welcome to the online chat home page
-	
-	The list of your's rooms 
 	<div ng-controller="ChatController as ct" style="height: 100%;;width: 100%;">
 		<div class="navbar">
 			<div class="collapse navbar-collapse">
 			      <ul class="nav navbar-nav">
 			        <li class="active"><a href="#" ng-click="ct.fetchAllRooms()" data-toggle="modal" data-target="#allRoomsModal" >Rooms</a></li>
-			        <li class="active"><a href="/rooms?form" >Create room</a></li>	       
+			        <li class="active"><a href="/rooms?form" >Create room</a></li>   
+			        <li class="active"><a href="/rooms?myrooms" >My rooms</a></li>
+			        <li class="active"><a href="/users/registration?edit" >Edit my info</a></li>
 			      </ul>
 			      <ul class="nav navbar-nav navbar-right">			      	
 				        <li>

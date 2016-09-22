@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.mindedmind.wsroom.domain.User;
+import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.UserService;
 
 @RunWith(SpringRunner.class)
@@ -29,16 +30,23 @@ public class UserControllerTest
 	@MockBean
 	private UserService userService;
 	
+	@MockBean
+	private ChatService chatService;
+	
 	@Test 
 	public void register_ModelContainsUserAttribute_True() throws Exception
 	{
-		mvc.perform(get("/registration")).andExpect(model().attributeExists("user"));
+		mvc.perform(get("/users/registration?form=null")).andExpect(model().attributeExists("user"));
 	}
 
 	@Test 
 	public void register_UserHasCorrectCredentials_True() throws Exception
 	{
-		mvc.perform(MockMvcRequestBuilders.post("/registration")
+		User user = new User();
+		user.setName("user1");
+		user.setPassword("");
+		mvc.perform(MockMvcRequestBuilders.post("/users/registration")
+				.sessionAttr("user" , user)
 				.param("name" , "user")
 				.param("password" , "password"))
 			.andExpect(MockMvcResultMatchers.view().name("redirect:/login"));

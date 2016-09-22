@@ -1,6 +1,6 @@
 package com.mindedmind.wsroom.repository;
 
-import java.util.Collection;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,9 +14,5 @@ public interface UserRepository extends JpaRepository<User, Long>
 	User findUserByName(@Param("name") String name);
 	
 	@Query("select u from User u where u.id in :ids")
-	Collection<User> findUsersById(@Param("ids") Long... ids);
-	
-	@Query("select u.id, u.name from User u")
-	Collection<Long> findAllUserIds();
-		
+	Set<User> findUsersById(@Param("ids") Long... ids);		
 }
