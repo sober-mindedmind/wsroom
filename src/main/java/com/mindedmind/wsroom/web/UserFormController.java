@@ -54,7 +54,7 @@ public class UserFormController
 		return "registration";
 	}
 	
-	@GetMapping(value = "/sds", params = "edit")
+	@GetMapping(params = "edit")
 	public String updateUserForm(Model model, UsernamePasswordAuthenticationToken authToken)
 	{
 		User currentUser = ((UserDetailsImpl) authToken.getPrincipal()).getUser();

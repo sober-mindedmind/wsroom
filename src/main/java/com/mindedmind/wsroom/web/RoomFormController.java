@@ -115,7 +115,7 @@ public class RoomFormController
 			model.addAttribute("roomName" , room.getName());
 		}				
 		model.addAttribute("room" , room);		
-		model.addAttribute("allUsers" , new ArrayList<>(userService.findAll()));		
+		model.addAttribute("allUsers" , userService.findAll());		
 		return "/room_constructor";
 	}	
 	
