@@ -3,6 +3,7 @@ package com.mindedmind.wsroom.domain;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ public class Room extends AbstractEntity
 	 */
 	@ManyToMany
 	@JoinTable(name = "private_users_rooms")
-	private Collection<User> allowedUsers 	 = new HashSet<>();
+	private Set<User> allowedUsers 	 = new HashSet<>();
 	
 	@ManyToMany
 	private Collection<User> subscribedUsers = new HashSet<>();
@@ -106,12 +107,12 @@ public class Room extends AbstractEntity
 		this.photo = photo;
 	}
 
-	public Collection<User> getAllowedUsers()
+	public Set<User> getAllowedUsers()
 	{
 		return allowedUsers;
 	}
 
-	public void setAllowedUsers(Collection<User> allowedUsers)
+	public void setAllowedUsers(Set<User> allowedUsers)
 	{
 		this.allowedUsers = allowedUsers;
 	}
@@ -140,14 +141,14 @@ public class Room extends AbstractEntity
 	{
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((active == null) ? 0 : active.hashCode());
-		result = prime * result + ((allowedUsers == null) ? 0 : allowedUsers.hashCode());
-		result = prime * result + ((description == null) ? 0 : description.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((owner == null) ? 0 : owner.hashCode());
-		result = prime * result + ((password == null) ? 0 : password.hashCode());
-		result = prime * result + Arrays.hashCode(photo);
-		result = prime * result + ((subscribedUsers == null) ? 0 : subscribedUsers.hashCode());
+		result = prime * result + ((getActive() == null) ? 0 : getActive().hashCode());
+		result = prime * result + ((getAllowedUsers() == null) ? 0 : getAllowedUsers().hashCode());
+		result = prime * result + ((getDescription() == null) ? 0 : getDescription().hashCode());
+		result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+		result = prime * result + ((getOwner() == null) ? 0 : getOwner().hashCode());
+		result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
+		result = prime * result + Arrays.hashCode(getPhoto());
+		result = prime * result + ((getSubscribedUsers() == null) ? 0 : getSubscribedUsers().hashCode());
 		return result;
 	}
 
@@ -165,14 +166,14 @@ public class Room extends AbstractEntity
 		
 		Room other = (Room) obj;		
 		
-		return Objects.equals(name, other.getName())
-				&& Objects.equals(password, other.getPassword())
-				&& Objects.equals(description, other.getDescription())
-				&& Objects.equals(active, other.getActive())
-				&& Objects.equals(owner, other.getOwner())
-				&& Objects.equals(subscribedUsers, other.getSubscribedUsers())
-				&& Objects.equals(allowedUsers, other.getAllowedUsers())
-				&& Objects.equals(photo, other.getPhoto());
+		return Objects.equals(getName(), other.getName())
+				&& Objects.equals(getPassword(), other.getPassword())
+				&& Objects.equals(getDescription(), other.getDescription())
+				&& Objects.equals(getActive(), other.getActive())
+				&& Objects.equals(getOwner(), other.getOwner())
+				&& Objects.equals(getSubscribedUsers(), other.getSubscribedUsers())
+				&& Objects.equals(getAllowedUsers(), other.getAllowedUsers())
+				&& Objects.equals(getPhoto(), other.getPhoto());
 	}
 	
 	

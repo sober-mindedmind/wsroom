@@ -100,12 +100,12 @@ public class User extends AbstractEntity
 	{
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((active == null) ? 0 : active.hashCode());
-		result = prime * result + ((birthday == null) ? 0 : birthday.hashCode());
-		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((password == null) ? 0 : password.hashCode());
-		result = prime * result + Arrays.hashCode(photo);
+		result = prime * result + ((isActive() == null) ? 0 : isActive().hashCode());
+		result = prime * result + ((getBirthday() == null) ? 0 : getBirthday().hashCode());
+		result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
+		result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+		result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
+		result = prime * result + Arrays.hashCode(getPhoto());
 		return result;
 	}
 
@@ -121,12 +121,12 @@ public class User extends AbstractEntity
 			return false;
 		}
 		User user = (User) obj;
-		return user.active == active 
-				&& Objects.equals(user.password , password)
-				&& Objects.equals(user.email, email)
-				&& Objects.equals(user.birthday, birthday)
-				&& Objects.equals(user.name , name)				
-				&& Arrays.equals(user.getPhoto() , photo);
+		return user.isActive() == isActive() 
+				&& Objects.equals(user.getPassword() , getPassword())
+				&& Objects.equals(user.getEmail(), getEmail())
+				&& Objects.equals(user.getBirthday(), getBirthday())
+				&& Objects.equals(user.getName() , getName())				
+				&& Arrays.equals(user.getPhoto() , getPhoto());
 	}
 	
 }
