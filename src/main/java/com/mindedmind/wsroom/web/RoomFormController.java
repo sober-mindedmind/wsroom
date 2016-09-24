@@ -66,7 +66,7 @@ public class RoomFormController
 									 @RequestParam(name = "image", required = false) MultipartFile photo,
 									 UsernamePasswordAuthenticationToken authToken,
 									 SessionStatus sessionStatus,
-									 HttpSession session) throws IOException
+									 Model model) throws IOException
 	{
 		if (result.hasErrors() || !ImageUtils.isValidImage(photo, 100000))
 		{
@@ -86,10 +86,9 @@ public class RoomFormController
 		roomService.save(room);
 		
 		/* if room has been updated then we must deactivate all users in this room, if any */
-		String oldRoomName = (String) session.getAttribute("roomName");		
-		if (oldRoomName != null)
+		if (model.containsAttribute("roomName"))
 		{
-			chatService.deactiveAll(oldRoomName);
+			chatService.deactiveAll((String) model.asMap().get("roomName"));
 		}
 		
 		sessionStatus.setComplete();
@@ -119,12 +118,12 @@ public class RoomFormController
 		return "/room_constructor";
 	}	
 	
-	@GetMapping(params = "myrooms")
+/*	@GetMapping(params = "myrooms")
 	public String userRoomsView(Model model, Principal principal)
 	{
 		Set<Room> rooms = roomService.findRoomsWhereUserIsOwner(principal.getName());
 		model.addAttribute("rooms" , rooms);
 		return "myrooms";
 	}
-	
+	*/
 }

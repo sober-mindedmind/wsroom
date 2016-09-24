@@ -3,7 +3,6 @@ package com.mindedmind.wsroom.domain;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -46,7 +45,7 @@ public class Room extends AbstractEntity
 	 * allowed to access this room
 	 */
 	@ManyToMany
-	@JoinTable(name = "private_users_rooms")
+	@JoinTable(name = "private_users_rooms")	
 	private Set<User> allowedUsers 	 = new HashSet<>();
 	
 	@ManyToMany
@@ -175,6 +174,4 @@ public class Room extends AbstractEntity
 				&& Objects.equals(getAllowedUsers(), other.getAllowedUsers())
 				&& Objects.equals(getPhoto(), other.getPhoto());
 	}
-	
-	
 }

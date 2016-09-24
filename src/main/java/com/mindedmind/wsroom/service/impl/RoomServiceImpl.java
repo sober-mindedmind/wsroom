@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mindedmind.wsroom.domain.Room;
+import com.mindedmind.wsroom.repository.MessageRepository;
 import com.mindedmind.wsroom.repository.RoomRepository;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.util.ImageUtils;
@@ -18,10 +19,13 @@ public class RoomServiceImpl implements RoomService
 
 	private RoomRepository roomRepository;
 		
+	private MessageRepository messageRepository;
+	
 	@Autowired
-	public RoomServiceImpl(RoomRepository roomRepository)
+	public RoomServiceImpl(RoomRepository roomRepository, MessageRepository messageRepository)
 	{
 		this.roomRepository = roomRepository;	
+		this.messageRepository = messageRepository;
 	}
 	
 	@Override public Room findRoom(Long id)
@@ -49,9 +53,18 @@ public class RoomServiceImpl implements RoomService
 		roomRepository.save(room);
 	}
 
-	@Override public void deleteByName(String name)
+	@Transactional
+	@Override public boolean deleteByName(String name, String owner)
 	{
-		roomRepository.deleteByName(name);
+		Room room = roomRepository.findRoomOfOwner(name, owner);		
+		boolean deleted = false;
+		if (room != null)
+		{
+			messageRepository.deleteMessages(room);
+			roomRepository.delete(room);
+			deleted = true;
+		}
+		return deleted;
 	}
 
 	@Transactional

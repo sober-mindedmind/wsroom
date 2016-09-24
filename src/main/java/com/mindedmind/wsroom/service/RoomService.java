@@ -15,7 +15,7 @@ public interface RoomService
 	
 	void save(Room room);
 	
-	void deleteByName(String name);
+	boolean deleteByName(String name, String owner);
 		
 	void delete(Room room);
 	

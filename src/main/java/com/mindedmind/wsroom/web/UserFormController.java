@@ -56,7 +56,7 @@ public class UserFormController
 	
 	@GetMapping(params = "edit")
 	public String updateUserForm(Model model, UsernamePasswordAuthenticationToken authToken)
-	{
+	{		
 		User currentUser = ((UserDetailsImpl) authToken.getPrincipal()).getUser();
 		model.addAttribute("user", currentUser);
 		model.addAttribute("oldName", currentUser.getName());
@@ -67,8 +67,8 @@ public class UserFormController
 	public String createOrUpdateUser(@Valid @ModelAttribute("user") User user,
 									 BindingResult result,
 									 @RequestParam(name = "image", required = false) MultipartFile image,						  
-									 HttpSession httpSession,
-									 HttpServletRequest request) throws IOException, ServletException
+									 HttpServletRequest request,									
+									 Model model) throws IOException, ServletException
 	{
 		if (result.hasErrors() || !ImageUtils.isValidImage(image , 60000))
 		{
@@ -79,12 +79,11 @@ public class UserFormController
 			user.setPhoto(image.getBytes());
 		}				
 		userService.save(user);
-
-		/* if user has been changed then we must deactive this user in all rooms in which he exists */
-		String oldName = (String) httpSession.getAttribute("oldName");
-		if (oldName != null)
+		
+		/* if user has been changed then we must deactive this user in all rooms in which he exists */		
+		if (model.containsAttribute("oldName"))
 		{
-			chatService.deactiveUser(oldName);
+			chatService.deactiveUser((String) model.asMap().get("oldName"));
 		}
 		
 		request.logout();

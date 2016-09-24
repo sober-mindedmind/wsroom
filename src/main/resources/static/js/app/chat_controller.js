@@ -6,6 +6,7 @@ angular.module('ChatModule').controller('ChatController',
 		['$scope', 'ChatService',
 		 function($scope, ChatService) 
 		 {
+			$scope.allMyRooms = []
 			$scope.rooms = {}
 			$scope.currentRoom = null
 			$scope.messageContent = ''
@@ -13,7 +14,7 @@ angular.module('ChatModule').controller('ChatController',
 			$scope.visibleRooms = false
 			$scope.allRooms = {};
 			$scope.notification = ''
-												
+			var self = this									
 			this.fetchAllRooms = function()
 			{
 				ChatService.getAllRooms().then
@@ -29,13 +30,16 @@ angular.module('ChatModule').controller('ChatController',
 			{
 				if (refresh)
 				{
-					this.fetchSubscribedRooms();
+					this.fetchSubscribedRooms(false);
 				}
 			}	
 			
 			this.startTyping = function()
 			{
-				ChatService.connection.sendTyping($scope.currentRoom.obj.name, '')
+				if ($scope.currentRoom)
+				{
+					ChatService.connection.sendTyping($scope.currentRoom.obj.name, '')
+				}
 			}
 			
 			this.onRoomClick = function(room)
@@ -43,45 +47,55 @@ angular.module('ChatModule').controller('ChatController',
 				room.visible = !room.visible
 				$scope.currentRoom = room
 			}
-				
+			
+			this.notification = function(text, time)
+			{
+				$scope.notification = text;
+				clearAfterDelay(time ? time : 2000)
+			}
+			
 			this.sendMessage = function() 
 			{
-				ChatService.connection.send($scope.currentRoom.obj.name, $scope.messageContent)
-				$scope.messageContent = ''
+				if ($scope.currentRoom)
+				{
+					ChatService.connection.send($scope.currentRoom.obj.name, $scope.messageContent)
+					$scope.messageContent = ''
+				}	
+				else
+				{
+					this.notification("You did not specify a chat room. At first choose room")
+				}				
 			}
 			
 			this.subscribe = function(room)
-			{
+			{				
 				var callbacks = {
 					onnewuser :
 						function(frame) 
 						{
+							console.log(frame.body)
 							var userName = JSON.parse(frame.body).name;
-							$scope.notification = "User " + userName + " has been connected"
+							self.notification("User " + userName + " has been connected")
 							$scope.rooms[room].users.push(userName)
-							$scope.$apply()
-							clearAfterDelay(2000)
+							$scope.$apply()							
 						},						
 			 		ontyping :  function(frame) 
 			 		{
-			 			$scope.notification = "User " + JSON.parse(frame.body).name + " is typing a message"
-			 			$scope.$apply() 
-			 			clearAfterDelay(1000)
+			 			self.notification("User " + JSON.parse(frame.body).name + " is typing a message", 1000)
+			 			$scope.$apply()			 			
 			 		}, 
 			 		onmessage : function(frame)
-			 		{			 			
-			 			
+			 		{		 			
 			 			$scope.rooms[room].messages.push(JSON.parse(frame.body))			 		
 			 		    $scope.$apply()			 		   
 			 		},
 			 		onuserleave :  function(frame) 
 			 		{
 			 			var userName = JSON.parse(frame.body).name;
-			 			$scope.notification = "User " + userName + " is leaving us" 
-			 			var users = $scope.rooms[room].users			 			
+			 			self.notification("User " + userName + " is leaving us") 
+			 			var users = $scope.rooms[room].users
 			 			users.splice(users.indexOf(userName), 1)
-			 			$scope.$apply()
-			 			clearAfterDelay(2000)
+			 			$scope.$apply()		 			
 			 		}, 
 				}				
 				ChatService.connection.subscribe(room, callbacks)
@@ -97,7 +111,7 @@ angular.module('ChatModule').controller('ChatController',
 				setTimeout(function(){$scope.notification = ''; $scope.$apply()}, time);
 			}
 						
-			this.fetchSubscribedRooms = function()
+			this.fetchSubscribedRooms = function(connectToRooms)
 			{
 			 	ChatService.getSubscridedRooms().then
 			 	(
@@ -119,15 +133,20 @@ angular.module('ChatModule').controller('ChatController',
 			            			{
 			            				roomModel.users.push(user)
 				            		})
-			            		}			            					      					            		
-			            	})			            	
+			            		}		            		
+			            	})
+			            				            	
+			            	if (connectToRooms)
+		            		{
+			            		rooms.forEach(function(room){self.subscribe(room.name)})
+		            		}
 			            },
 			            function(errResponse){
 			                console.error('Error while fetching rooms');
 			            }
 			        );			 	
 			 }
-			
+				
 			this.subscribeOnRooms = function()
 			{				
 				if ($scope.allRooms)
@@ -144,14 +163,28 @@ angular.module('ChatModule').controller('ChatController',
 					if (rooms.length > 0)
 					{
 						var self = this					
-						ChatService.subscribeOnRooms(rooms).then(function(){self.showChat(true)})
+						ChatService.subscribeOnRooms(rooms).then(function()
+						{
+							self.showChat(true)
+							rooms.forEach(function(room){self.subscribe(room.name)})
+						})
 					}
 					else
 					{
 						self.showChat(false)
 					}
 				}
-			}			
+			}		
 			
-			this.fetchSubscribedRooms();
+			this.fetchAllMyRooms = function()
+			{
+				ChatService.getMyRooms().then(function(rooms){$scope.allMyRooms = rooms;})
+			}
+			
+			this.removeRoom = function(roomName)
+			{
+				ChatService.removeRoom(roomName).then(function(){$scope.allMyRooms.splice($scope.allMyRooms.indexOf(roomName), 1)}) 
+			}
+			
+			this.fetchSubscribedRooms(true);
 		 }]);

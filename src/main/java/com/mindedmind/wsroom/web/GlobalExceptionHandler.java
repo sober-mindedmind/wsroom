@@ -14,7 +14,6 @@ public class GlobalExceptionHandler
 	@ResponseStatus(BAD_REQUEST)	
 	public ModelAndView onException(Exception e)
 	{
-		e.printStackTrace();
 		ModelAndView modelAndView = new ModelAndView();
 		modelAndView.setViewName("/error");
 		modelAndView.addObject("msg" , e.getMessage());		

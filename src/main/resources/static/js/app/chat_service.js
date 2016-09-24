@@ -20,7 +20,15 @@ angular.module('ChatModule', [])
 				subscribeOnRooms : function(data)
 				{
 					return deferResult(function() {return $http.post("/users/rooms", data)})
-				}
+				},
+				getMyRooms : function(data)
+				{
+					return deferResult(function() {return $http.get("/rooms/myrooms")})
+				}, 
+				removeRoom : function(roomName) 
+				{
+					return deferResult(function() {return $http['delete']("/rooms/" + roomName)})
+				}				
 		};
 		
 		function deferResult(asyncCall) 
@@ -29,7 +37,7 @@ angular.module('ChatModule', [])
 			asyncCall().then(function (response){deferred.resolve(response.data);},
 				             function(errResponse)
 				             {   
-								console.error('Error while fetching Users');
+								console.error('Error while making request');
 				                deferred.reject(errResponse);
 				             }		           
             );

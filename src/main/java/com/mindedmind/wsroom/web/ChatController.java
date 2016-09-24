@@ -1,20 +1,27 @@
 package com.mindedmind.wsroom.web;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.mindedmind.wsroom.domain.Message;
+import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.dto.ChatMessageDto;
 import com.mindedmind.wsroom.dto.RoomDto;
@@ -112,6 +120,13 @@ public class ChatController
 		}).collect(toList());	
 		return dtos;
 	}
+	
+	@DeleteMapping("/rooms/{name}")
+	public ResponseEntity<Void> removeRoom(@PathVariable("name") String name, Principal principal)
+	{
+		boolean deleted = roomService.deleteByName(name , principal.getName());
+		return new ResponseEntity<>(deleted ? NO_CONTENT : BAD_REQUEST);		
+	}
 		
 	@GetMapping("/rooms/{name}/image")
 	@ResponseBody
@@ -138,7 +153,7 @@ public class ChatController
 		}).collect(toList());
 		return dtos;
 	}
-	
+		
 	@PostMapping("/users/rooms")	
 	@ResponseStatus(CREATED)
 	public void subscribeOnRooms(@RequestBody Collection<RoomDto> subscribedRooms, Principal principal)
@@ -152,6 +167,16 @@ public class ChatController
 	{	
 		return userService.loadUserImage(name);
 	}	
+	
+	@GetMapping("/rooms/myrooms")
+	@ResponseBody
+	public Set<String> listRoomsWherePrincipalIsOwner(Principal principal)  
+	{
+		return roomService.findRoomsWhereUserIsOwner(principal.getName())
+				.stream()
+				.map(r -> r.getName())
+				.collect(toSet());		
+	}
 
 	@ExceptionHandler(SubscriptionException.class)
 	@ResponseStatus(BAD_REQUEST)

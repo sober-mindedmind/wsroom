@@ -55,7 +55,6 @@ public class UserServiceImpl implements UserService
 	@Override public Set<User> findUsers(Long... ids)
 	{
 		Validate.notNull(ids , "Array of identifiers can't be null");
-	//	return Arrays.stream(ids).map(userRepository::getOne).collect(Collectors.toSet());
 		Set<User> users = userRepository.findUsersById(ids);
 		return users == null ? Collections.emptySet() : users;
 	}
