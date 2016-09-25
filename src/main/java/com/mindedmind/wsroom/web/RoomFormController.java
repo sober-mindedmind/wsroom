@@ -117,13 +117,5 @@ public class RoomFormController
 		model.addAttribute("allUsers" , userService.findAll());		
 		return "/room_constructor";
 	}	
-	
-/*	@GetMapping(params = "myrooms")
-	public String userRoomsView(Model model, Principal principal)
-	{
-		Set<Room> rooms = roomService.findRoomsWhereUserIsOwner(principal.getName());
-		model.addAttribute("rooms" , rooms);
-		return "myrooms";
-	}
-	*/
+
 }

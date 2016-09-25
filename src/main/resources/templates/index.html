@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"></meta>
 <title>Insert title here</title>
+<style>
+	.oneline {display:inline-block}
+</style>
 <link rel="stylesheet" href="css/bootstrap.min.css"/>
 <script type="text/javascript" src="js/stomp.js"></script>
 <script type="text/javascript" src="js/angular.min.js"></script>
@@ -42,16 +45,13 @@
 						</div>
 						<div class="modal-body">
 							<label for="rooms">My rooms:</label>		
-							<ul  ng-repeat="room in allMyRooms">
-								
+							<ul style="list-style-type:none" ng-repeat="room in allMyRooms">								
 								<li>
 									<span ng-click="ct.removeRoom(room)" class="glyphicon glyphicon-remove">
 									</span>																					
 									<a ng-href="/rooms?form&amp;name={{room}}">{{room}}</a>
 								</li>
 							</ul>
-						<!--	<div th:include = "myrooms">							
-							</div> -->
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -71,13 +71,11 @@
 							<ul ng-repeat="room in allRooms">
 							<div class="form-group">
 								<li style="display:inline-block" class="color:orange">											
-									<input style="display:inline-block" type="checkbox" ng-model="room.checked" />	
-									
-									<img style="display:inline-block" ng-src="/rooms/{{room.name}}/image" 
-										onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
-																		
-									<h4 style="display:inline-block" >{{room.name}} ({{room.usersCount}}) [{{room.description}}]</h4>							
-									<span style="display:inline-block" ng-show="room.hasPassword" class="glyphicon glyphicon-lock"/>									
+									<input class="oneline" type="checkbox" ng-model="room.checked" />									
+									<img class="oneline" ng-src="/rooms/{{room.name}}/image" 
+										onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />																		
+									<h4 class="oneline" >{{room.name}} ({{room.usersCount}}) {{room.description}}</h4>							
+									<span ng-show="room.hasPassword" class="oneline glyphicon glyphicon-lock"/>									
 									<div ng-show="room.checked &amp;&amp; room.hasPassword">							
 										<h5><small>This room is under password. Type password in order to connect</small></h5>
 										<input class="form-control" type="password" ng-model="room.password" />
@@ -98,53 +96,60 @@
 		<div class="container-fluid">
 			<div class="row content" ng-show="visibleChat">
     			<div class="col-sm-3">
-    				<h4>My Rooms</h4>
-    				<hr></hr>
-					<ul class="nav nav-pills nav-stacked" ng-repeat="room in rooms">
-				        <li class="active">				        	
-				        	<h4 ng-click="ct.onRoomClick(room)">{{room.obj.name}} ({{room.users.length}}) [{{room.obj.description}}	]</h4> 	        	
-				        	<div ng-show="room.visible"> 	        	
-					        	<button type="button" class="btn btn-primary" ng-click="ct.subscribe(room.obj.name)"> connect </button>
-					        	<button type="button" class="btn btn-warning" ng-click="ct.unsubscribe(room.obj.name)"> unsubscribe </button>		        	
-					        	<h5> Connected users </h5>
-					        	<ul class="nav nav-pills nav-stacked" ng-repeat="user in room.users">
+    				<h4><small>ROOMS</small></h4>    				
+    				<hr></hr>    				
+    				<div class="panel-group" id="accordion">
+					    <div class="panel panel-default" ng-repeat="room in rooms">
+					      <div class="panel-heading" ng-click="ct.onRoomClick(room)">
+					        <h4 class="panel-title">
+					          <a data-toggle="collapse" data-parent="#accordion" href="#{{room.obj.name}}">
+					          	{{room.obj.name}} ({{room.users.length}})
+					          	<button type="button" style="float:right;" class="oneline btn btn-warning" ng-click="ct.unsubscribe(room.obj.name)">unsubscribe</button>
+					          </a>
+					        </h4>
+					      </div>
+					      <div id="{{room.obj.name}}" class="panel-collapse collapse in">
+					        <div class="panel-body">
+					        	
+					       		<ul class="nav nav-pills nav-stacked" ng-repeat="user in room.users">
 					 				<li class="active">
-					 					<img ng-src="/users/{{user}}/image" onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
-					 					<h5>{{user}}</h5>
+					 					<img class="oneline" ng-src="/users/{{user}}/image" onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
+					 					<h5 class="oneline">{{user}}</h5>
 					 				</li>  	
 					   			</ul> 
-				   			</div>    	 		
-				        </li>
-				   </ul>
+					        </div>
+					      </div>
+					    </div>					
+					  </div>    								   
 				</div> 	 
-				<div class="col-sm-9">
-      				<h4><small>RECENT MESSAGES</small></h4>
+				<div id="msgs_div" class="col-sm-9">
+      				<h4><small>RECENT MESSAGES {{currentRoom.obj.name}}</small></h4>
       				<hr></hr>
-      				<div style="overflow: scroll; width: 100%;height: 80%;border: 1px solid red;min-height:300px">
-	      				<ul ng-repeat="message in currentRoom.messages">
-						 	<li class="active">
-						 		<img ng-src="/users/{{message.owner}}/image" 
+      				<div>
+	      				<ul id="msgs_list"
+	      					style="overflow:hidden; overflow-y:scroll; list-style-type:none;width: 100%;height: 500px;border: 1px solid red;" >
+						 	<li class="active" ng-repeat="message in currentRoom.messages">
+						 		<img class="oneline" ng-src="/users/{{message.owner}}/image" 
 						 			onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
-						 		<h6>{{message.owner}} ({{message.serverTime}}): {{message.text}}</h6>
+						 		<h5 class="oneline"> {{message.owner}} ({{message.serverTime}}): {{message.text}}</h5>
 						 	</li>  	
 						</ul>
 					</div>		
 					<p>
-					<input style="width: 100%;" id = "text" ng-model="messageContent" ng-keyup="$event.keyCode == 13 ? ct.sendMessage() : ct.startTyping()" />
-					<button  class="btn btn-default" type="button" ng-click="ct.sendMessage()"> SEND </button>
+					<input style="width: 93%;" 
+						   id = "text"
+						   onkeydown="var elem = document.getElementById('msgs_list');elem.scrollTop = elem.scrollHeight;" 
+						   ng-model="messageContent" 
+						   ng-keyup="$event.keyCode == 13 ? ct.sendMessage() : ct.startTyping()"
+						   class="oneline" />
+					<button class="oneline btn btn-default" type="button" ng-click="ct.sendMessage()"> SEND </button>
 					</p>
 					<div class="alert alert-info fade in" ng-show="notification != ''">
 					    <strong>{{notification}}</strong>
 			  		</div>				
 				</div>  
-			</div>		
-			
+			</div>			
 		</div>
-		
-		
-	<!-- 	<footer class="container-fluid text-center" style="background-color: #555;color: white; padding: 15px;">
-  			<h4>{{notification}}</h4>
-		</footer>  -->   
 	</div>	
 	
 </body>
