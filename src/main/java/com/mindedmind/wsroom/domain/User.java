@@ -1,19 +1,31 @@
 package com.mindedmind.wsroom.domain;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Lob;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
+@NamedEntityGraphs(
+		@NamedEntityGraph(
+				name = "userWithRoles",
+				attributeNodes = {@NamedAttributeNode("roles")}))
 public class User extends AbstractEntity
 {	
 	@NotNull
@@ -35,6 +47,10 @@ public class User extends AbstractEntity
 	private String email;
 	
 	private String birthday;
+	
+	@Enumerated(EnumType.STRING)
+	@ElementCollection
+	private Set<Role> roles = new HashSet<>(10);
 		
 	public byte[] getPhoto()
 	{
@@ -127,6 +143,16 @@ public class User extends AbstractEntity
 				&& Objects.equals(user.getBirthday(), getBirthday())
 				&& Objects.equals(user.getName() , getName())				
 				&& Arrays.equals(user.getPhoto() , getPhoto());
+	}
+
+	public Set<Role> getRoles()
+	{
+		return roles;
+	}
+
+	public void setRoles(Set<Role> roles)
+	{
+		this.roles = roles;
 	}
 	
 }

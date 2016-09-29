@@ -11,10 +11,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -26,13 +24,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.mindedmind.wsroom.domain.Message;
-import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
+import com.mindedmind.wsroom.dto.AdministeredUserDto;
 import com.mindedmind.wsroom.dto.ChatMessageDto;
 import com.mindedmind.wsroom.dto.RoomDto;
 import com.mindedmind.wsroom.dto.UserDto;
@@ -159,14 +158,37 @@ public class ChatController
 	public void subscribeOnRooms(@RequestBody Collection<RoomDto> subscribedRooms, Principal principal)
 	{
 		subscribedRooms.forEach((dto) -> chatService.subscribe(principal.getName() , dto.getName(), dto.getPassword()));
-	}		
+	}
 	
 	@GetMapping("/users/{name}/image")
 	@ResponseBody
 	public byte[] loadUserProfileImage(@PathVariable("name") String name)
 	{	
 		return userService.loadUserImage(name);
-	}	
+	}
+	
+	@GetMapping("/admin/users/")
+	@ResponseBody
+	public Set<AdministeredUserDto> getAllUsers()
+	{
+		return userService.findAll().stream().map(AdministeredUserDto::new).collect(toSet());
+	}
+	
+	@DeleteMapping("/admin/users/{id}")	
+	public void removeUser(@PathVariable("id") Long id)
+	{
+		userService.removeUserById(id);
+	}
+	
+	@PutMapping(value = "/admin/users/{id}")
+	public void updateUser(@RequestBody AdministeredUserDto userDto)
+	{
+		User u = userService.findUser(userDto.getName());
+		u.setName(userDto.getName());
+		u.setActive(userDto.getActive());
+		u.setRoles(userDto.getRoles());
+		userService.save(u);
+	}
 	
 	@GetMapping("/rooms/myrooms")
 	@ResponseBody

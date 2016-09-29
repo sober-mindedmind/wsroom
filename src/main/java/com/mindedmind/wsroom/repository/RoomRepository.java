@@ -14,7 +14,6 @@ import com.mindedmind.wsroom.domain.Room;
 
 public interface RoomRepository extends JpaRepository<Room, Long>
 {	
-	
 	@Query("select r from Room r where r.name = ?1")
 	Room findByName(String name);
 	
@@ -41,8 +40,5 @@ public interface RoomRepository extends JpaRepository<Room, Long>
 	Set<Room> findUserRooms(String userName);
 	
 	@Query("select r from Room r join r.owner o on o.name = ?1")
-	Set<Room> findRoomsWhereUserIsOwner(String owner);
-	
-	//@Query("delete from Room r left join r.subscribedUsers u where r.name = :roomName and u.name = :userName")
-	//void unsubscribeUser(@Param("roomName") String roomName, @Param("userName") String userName);
+	Set<Room> findRoomsWhereUserIsOwner(String owner);	
 }

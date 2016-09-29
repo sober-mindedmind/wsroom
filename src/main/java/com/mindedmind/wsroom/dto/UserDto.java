@@ -5,7 +5,7 @@ public class UserDto
 	private Long id;
 	
 	private String name;
-
+	
 	public UserDto(String name)
 	{		
 		this(null, name);
@@ -16,7 +16,6 @@ public class UserDto
 		this.id = id;
 		this.name = name;
 	}
-	
 
 	public String getName()
 	{
