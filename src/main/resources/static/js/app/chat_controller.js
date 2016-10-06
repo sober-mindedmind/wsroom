@@ -3,8 +3,8 @@
  */
 
 angular.module('ChatModule').controller('ChatController', 
-		['$scope', 'ChatService',
-		 function($scope, ChatService) 
+		['$scope', 'ChatService', 'RoomService', 'UserService',
+		 function($scope, ChatService, RoomService, UserService) 
 		 {
 			$scope.allMyRooms = []
 			$scope.rooms = {}
@@ -17,7 +17,7 @@ angular.module('ChatModule').controller('ChatController',
 			var self = this									
 			this.fetchAllRooms = function()
 			{
-				ChatService.getAllRooms().then
+				RoomService.getAllRooms().then
 				(
 					function(rooms)
 					{
@@ -113,7 +113,7 @@ angular.module('ChatModule').controller('ChatController',
 						
 			this.fetchSubscribedRooms = function(connectToRooms)
 			{
-			 	ChatService.getSubscridedRooms().then
+			 	UserService.getSubscridedRooms().then
 			 	(
 			            function(rooms)
 			            {			            	
@@ -138,7 +138,11 @@ angular.module('ChatModule').controller('ChatController',
 			            				            	
 			            	if (connectToRooms)
 		            		{
-			            		rooms.forEach(function(room){self.subscribe(room.name)})
+			            		rooms.forEach(function(room)
+			            		{
+			            			self.subscribe(room.name)
+			            			setTimeout(function(){$('#' + room.name).collapse('hide')}, 400);
+			            		})
 		            		}
 			            },
 			            function(errResponse){
@@ -163,7 +167,7 @@ angular.module('ChatModule').controller('ChatController',
 					if (rooms.length > 0)
 					{
 						var self = this					
-						ChatService.subscribeOnRooms(rooms).then(function()
+						UserService.subscribeOnRooms(rooms).then(function()
 						{
 							self.showChat(true)
 							rooms.forEach(function(room){self.subscribe(room.name)})
@@ -174,16 +178,16 @@ angular.module('ChatModule').controller('ChatController',
 						self.showChat(false)
 					}
 				}
-			}		
+			}
 			
 			this.fetchAllMyRooms = function()
 			{
-				ChatService.getMyRooms().then(function(rooms){$scope.allMyRooms = rooms;})
+				RoomService.getMyRooms().then(function(rooms){$scope.allMyRooms = rooms;})
 			}
 			
 			this.removeRoom = function(roomName)
 			{
-				ChatService.removeRoom(roomName).then(function(){$scope.allMyRooms.splice($scope.allMyRooms.indexOf(roomName), 1)}) 
+				RoomService.removeRoom(roomName).then(function(){$scope.allMyRooms.splice($scope.allMyRooms.indexOf(roomName), 1)}) 
 			}
 			
 			this.fetchSubscribedRooms(true);

@@ -1,10 +1,17 @@
 package com.mindedmind.wsroom.dto;
 
+import com.mindedmind.wsroom.domain.User;
+
 public class UserDto
 {
 	private Long id;
 	
 	private String name;
+	
+	public UserDto(User user)
+	{
+		this(user.getId(), user.getName());		
+	}
 	
 	public UserDto(String name)
 	{		

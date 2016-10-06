@@ -14,6 +14,8 @@ import com.mindedmind.wsroom.domain.Room;
 
 public class RoomDto
 {
+	private Long id;
+	
 	@NotNull
 	@Size(min = 3)
 	private String name;
@@ -44,6 +46,7 @@ public class RoomDto
 	 */
 	public RoomDto(Room room)
 	{
+		setId(room.getId());
 		setName(room.getName());
 		setDescription(room.getDescription());
 		setActive(room.getActive());
@@ -143,5 +146,15 @@ public class RoomDto
 	public boolean isContainsAllowedUsers() 
 	{
 		return getAllowedUserIds() != null && !getAllowedUserIds().isEmpty();
+	}
+
+	public Long getId()
+	{
+		return id;
+	}
+
+	public void setId(Long id)
+	{
+		this.id = id;
 	}
 }

@@ -1,5 +1,5 @@
 /** 
- * class WSConnection.  Responsible for establishing web-socket connections. The web-socket connection establishes 
+ * class WSConnection.  Responsible for establishing web-socket connections. The web-socket connection is established 
  * over STOMP protocol.  
  */
 var Path =
@@ -36,7 +36,6 @@ WSConnection.prototype.subscribe = function (room, callbacks)
 	this.stompClient.subscribe(Path.USER_JOIN_TOPIC_DEST + room, callbacks.onnewuser);
 	this.stompClient.subscribe(Path.TYPING_TOPIC_DEST + room, callbacks.ontyping);
 	this.stompClient.subscribe(Path.CHAT_TOPIC_DEST + room, callbacks.onmessage);
-	this.stompClient.subscribe("/user/queue/" + room, callbacks.onmessage)
 	this.stompClient.subscribe(Path.USER_LEAVE_TOPIC_DEST + room, callbacks.onuserleave);	
 }
 
@@ -55,22 +54,14 @@ WSConnection.prototype.unsubscribe = function(room)
 
 WSConnection.prototype.sendTyping = function (room, text)
 {
-	this.stompClient.send("/app/typing/" + room, 
+	this.stompClient.send(Path.TYPING_APP_DEST + room, 
 			 {},
 			 JSON.stringify({'text' : text}));
 }
 
 WSConnection.prototype.send = function (room, text)
 {
-	this.stompClient.send("/app/chat/" + room, 
-					 {}, 
-					 JSON.stringify({'text' : text}));
-	console.log("Send message")
-}
-	
-WSConnection.prototype.sendToUser = function (room, user, text)
-{
-	this.stompClient.send("/app/private/chat/" + room + "/" + user, 
+	this.stompClient.send(Path.CHAT_APP_DEST + room, 
 					 {}, 
 					 JSON.stringify({'text' : text}));
 	console.log("Send message")

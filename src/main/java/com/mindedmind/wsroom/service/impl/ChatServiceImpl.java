@@ -52,7 +52,7 @@ public class ChatServiceImpl implements ChatService
 	@Transactional
 	@Override public void saveMessage(Message msg, String roomName)
 	{
-		msg.setRoom(roomService.findByName(roomName, null));
+		msg.setRoom(roomService.findByName(roomName));
 		messageRepository.save(msg);
 	}
 
@@ -65,7 +65,7 @@ public class ChatServiceImpl implements ChatService
 	@Override public void unsubscribe(String userName, String room)
 	{		
 		User user = userRepository.findUserByName(userName);	
-		roomService.findByName(room, null).getSubscribedUsers().remove(user);
+		roomService.findByName(room).getSubscribedUsers().remove(user);
 		deactiveUser(userName);
 	}
 
@@ -102,7 +102,7 @@ public class ChatServiceImpl implements ChatService
 	@Transactional
 	@Override public void subscribe(String userName, String roomName, String password)
 	{
-		Room room = roomService.findByName(roomName, null);
+		Room room = roomService.findByName(roomName);
 		
 		/* verifying password */
 		if (room.getPassword() != null && !room.getPassword().equals(password))

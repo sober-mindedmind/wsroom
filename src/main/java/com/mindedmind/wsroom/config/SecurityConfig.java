@@ -4,20 +4,26 @@ import static com.mindedmind.wsroom.domain.Role.ROLE_ADMIN;
 import static com.mindedmind.wsroom.domain.Role.ROLE_USER;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import com.mindedmind.wsroom.domain.Role;
 import com.mindedmind.wsroom.repository.UserRepository;
 import com.mindedmind.wsroom.service.impl.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true, 
+							proxyTargetClass = true,
+							securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter
 {
 	@Autowired UserRepository userRepository;
@@ -27,7 +33,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
 		 http
          .authorizeRequests()
              .antMatchers("/users/registration", "/css/*", "/js/*").permitAll()
-             .antMatchers("/admin").hasAuthority(ROLE_ADMIN.getName())
+             .antMatchers("/admin/**").hasAuthority(ROLE_ADMIN.getName())
              .anyRequest().hasAnyAuthority(ROLE_USER.getName(), ROLE_ADMIN.getName())
              .and()
              .csrf()

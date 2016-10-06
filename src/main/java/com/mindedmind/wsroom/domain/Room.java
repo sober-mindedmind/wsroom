@@ -13,12 +13,15 @@ import javax.persistence.JoinTable;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * Represents place were one user can chat with another. Each room has her owner i.e. such user that created this
+ * Represents place were one user can chat with another. Each room has its owner i.e. such user that created this
  * room. Owner can specify password for this room therefore making this room private. If password was not specified then
  * room is public, hence any user can enter such room. Also each room can have set of allowed users, if set is non empty
  * then only the users which were specified in this set allow to access this room, otherwise, if list is empty
@@ -26,6 +29,10 @@ import javax.validation.constraints.Size;
  */
 @Entity
 @Table(name = "rooms")
+@NamedEntityGraphs(
+		@NamedEntityGraph(
+				name = "Room.roomWithOwner",
+				attributeNodes = {@NamedAttributeNode("owner")}))
 public class Room extends AbstractEntity
 {
 	@NotNull

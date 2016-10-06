@@ -20,11 +20,14 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+/**
+ * Represents an authenticated user and a client of a chat.  
+ */
 @Entity
 @Table(name = "users")
 @NamedEntityGraphs(
 		@NamedEntityGraph(
-				name = "userWithRoles",
+				name = "User.userWithRoles",
 				attributeNodes = {@NamedAttributeNode("roles")}))
 public class User extends AbstractEntity
 {	
@@ -37,7 +40,6 @@ public class User extends AbstractEntity
 	@Basic(fetch = FetchType.LAZY)
 	private byte[] photo;
 	
-	@NotNull
 	@Size(min = 6)	
 	private String password;
 	
@@ -49,9 +51,9 @@ public class User extends AbstractEntity
 	private String birthday;
 	
 	@Enumerated(EnumType.STRING)
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	private Set<Role> roles = new HashSet<>(10);
-		
+	
 	public byte[] getPhoto()
 	{
 		return photo;
@@ -154,5 +156,5 @@ public class User extends AbstractEntity
 	{
 		this.roles = roles;
 	}
-	
+
 }

@@ -31,6 +31,8 @@ public class UserDetailsImpl implements UserDetails
 		}		
 	}
 	
+	public UserDetailsImpl() {}
+	
 	public UserDetailsImpl(User user)
 	{		
 		Collection<Role> roles = user.getRoles();

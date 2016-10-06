@@ -1,9 +1,11 @@
 package com.mindedmind.wsroom.service.impl;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.util.ImageUtils;
 
 @Component
+@Transactional
 public class RoomServiceImpl implements RoomService
 {
 
@@ -32,12 +35,10 @@ public class RoomServiceImpl implements RoomService
 	{		
 		return roomRepository.findOne(id);
 	}
-
-	@Transactional
-	@Override public Room findByName(String name, String owner)
+	
+	@Override public Room findByName(String name)
 	{
-		return owner == null ? roomRepository.findByName(name) 
-							 : roomRepository.findRoomOfOwner(name, owner);
+		return roomRepository.findByName(name);
 	}
 
 	@Override public void save(Room room)
@@ -53,47 +54,45 @@ public class RoomServiceImpl implements RoomService
 		roomRepository.save(room);
 	}
 
-	@Transactional
-	@Override public boolean deleteByName(String name, String owner)
+	@Override public void deleteByName(String name)
 	{
-		Room room = roomRepository.findRoomOfOwner(name, owner);		
-		boolean deleted = false;
-		if (room != null)
+		Room room = findByName(name);
+		if (room == null)
 		{
-			messageRepository.deleteMessages(room);
-			roomRepository.delete(room);
-			deleted = true;
-		}
-		return deleted;
+			throw new EntityNotFoundException(
+					String.format("Can't delete room, because can't find the room with the given name '%s'" , name));		
+		}		
+		delete(room);
 	}
-
-	@Transactional
-	@Override public Collection<Room> getAllRooms(String user)
+		
+	@Override public Set<Room> getAllRooms(String user)
 	{
 		return roomRepository.allRoomsVisibleForUser(user);
 	}
-
+	
 	@Override public void delete(Room room)
 	{
+		messageRepository.deleteAllMessagesInRoom(room);
 		roomRepository.delete(room);
 	}
 
-	@Transactional
-	@Override public Collection<Room> getSubsribedRooms(String user)
+	@Override public Set<Room> getSubsribedRooms(String user)
 	{
 		return roomRepository.findUserRooms(user);
 	}
 
-	@Transactional
 	@Override public byte[] loadRoomImage(String name)
 	{
 		return roomRepository.findByName(name).getPhoto();
 	}
 
-	@Transactional
 	@Override public Set<Room> findRoomsWhereUserIsOwner(String name)
 	{
 		return roomRepository.findRoomsWhereUserIsOwner(name);
 	}
 
+	@Override public Set<Room> getAllRooms()
+	{
+		return new HashSet<>(roomRepository.findAll());
+	}
 }

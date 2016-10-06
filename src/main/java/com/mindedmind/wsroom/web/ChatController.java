@@ -4,7 +4,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import java.security.Principal;
 import java.util.Collection;
@@ -13,31 +12,32 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.mindedmind.wsroom.domain.Message;
+import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
-import com.mindedmind.wsroom.dto.AdministeredUserDto;
 import com.mindedmind.wsroom.dto.ChatMessageDto;
+import com.mindedmind.wsroom.dto.ErrorDto;
 import com.mindedmind.wsroom.dto.RoomDto;
 import com.mindedmind.wsroom.dto.UserDto;
 import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
+import com.mindedmind.wsroom.service.impl.EntityNotFoundException;
 import com.mindedmind.wsroom.service.impl.SubscriptionException;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
 
@@ -63,18 +63,17 @@ public class ChatController
 	@MessageMapping("/chat/{room}")
 	public ChatMessageDto handleMessage(@Payload ChatMessageDto messageDto, 
 									 	@DestinationVariable("room") String roomName,
-									 	UsernamePasswordAuthenticationToken authToken)
+									 	Authentication auth)
 	{		
-		
+		User currentUser = ((UserDetailsImpl)auth.getPrincipal()).getUser();
 		Date currentDate = new Date();
-		User owner = ((UserDetailsImpl)(authToken.getPrincipal())).getUser();
 		messageDto.setServerTime(currentDate.toString());		
-		messageDto.setOwner(owner.getName());
+		messageDto.setOwner(currentUser.getName());
 		
 		Message msg = new Message();
 		msg.setText(messageDto.getText());
 		msg.setTime(currentDate);
-		msg.setOwner(owner);
+		msg.setOwner(currentUser);
 		chatService.saveMessage(msg, roomName);
 				
 		/* send to /topic/chat/{room} */
@@ -120,11 +119,12 @@ public class ChatController
 		return dtos;
 	}
 	
+	@ResponseStatus(HttpStatus.OK)
 	@DeleteMapping("/rooms/{name}")
-	public ResponseEntity<Void> removeRoom(@PathVariable("name") String name, Principal principal)
-	{
-		boolean deleted = roomService.deleteByName(name , principal.getName());
-		return new ResponseEntity<>(deleted ? NO_CONTENT : BAD_REQUEST);		
+	public void removeRoom(@PathVariable("name") String name)
+	{			
+		Room room = roomService.findByName(name);
+		roomService.delete(room);
 	}
 		
 	@GetMapping("/rooms/{name}/image")
@@ -133,6 +133,13 @@ public class ChatController
 	{
 		return roomService.loadRoomImage(name);
 	}	
+	
+	@GetMapping(value = "/rooms", params="all")
+	@ResponseBody
+	public Set<RoomDto> getAllRooms()
+	{
+		return roomService.getAllRooms().stream().map(RoomDto::new).collect(toSet());		
+	}
 	
 	/**
 	 * Returns list of room on which the current user has been subscribed. The path does not include user path variable
@@ -167,29 +174,20 @@ public class ChatController
 		return userService.loadUserImage(name);
 	}
 	
-	@GetMapping("/admin/users/")
+	@GetMapping("/users")
 	@ResponseBody
-	public Set<AdministeredUserDto> getAllUsers()
+	public Set<UserDto> getAllUsers()
 	{
-		return userService.findAll().stream().map(AdministeredUserDto::new).collect(toSet());
+		return userService.findAll().stream().map(UserDto::new).collect(toSet());
 	}
 	
-	@DeleteMapping("/admin/users/{id}")	
-	public void removeUser(@PathVariable("id") Long id)
+	@DeleteMapping("/users/{name}")
+	@ResponseStatus(HttpStatus.OK)
+	public void removeUser(@PathVariable("name") String name)
 	{
-		userService.removeUserById(id);
+		userService.removeUser(name);
 	}
-	
-	@PutMapping(value = "/admin/users/{id}")
-	public void updateUser(@RequestBody AdministeredUserDto userDto)
-	{
-		User u = userService.findUser(userDto.getName());
-		u.setName(userDto.getName());
-		u.setActive(userDto.getActive());
-		u.setRoles(userDto.getRoles());
-		userService.save(u);
-	}
-	
+		
 	@GetMapping("/rooms/myrooms")
 	@ResponseBody
 	public Set<String> listRoomsWherePrincipalIsOwner(Principal principal)  
@@ -197,16 +195,14 @@ public class ChatController
 		return roomService.findRoomsWhereUserIsOwner(principal.getName())
 				.stream()
 				.map(r -> r.getName())
-				.collect(toSet());		
+				.collect(toSet());
 	}
 
-	@ExceptionHandler(SubscriptionException.class)
+	@ExceptionHandler({SubscriptionException.class, EntityNotFoundException.class})
 	@ResponseStatus(BAD_REQUEST)
 	@ResponseBody
-	public String onException(SubscriptionException e)
-	{
-		/* TODO add exception message dto  */
-		return e.getMessage();
+	public ErrorDto onException(Exception e)
+	{		
+		return new ErrorDto(e.getMessage());
 	}
-	
 }

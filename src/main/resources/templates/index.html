@@ -11,7 +11,9 @@
 <script type="text/javascript" src="js/angular.min.js"></script>
 <script type="text/javascript" src="js/app/wsconnector.js"></script>
 <script type="text/javascript" src="js/app/chat_module.js"></script>
-<script type="text/javascript" src="js/app/chat_service.js"></script>
+<script type="text/javascript" src="js/app/user_service.js"></script>
+<script type="text/javascript" src="js/app/room_service.js"></script>
+<script type="text/javascript" src="js/app/chat_service.js"></script> 
 <script type="text/javascript" src="js/app/chat_controller.js"></script>
 <script type="text/javascript" src="js/jquery-3.1.0.min.js" ></script>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
@@ -24,9 +26,12 @@
 			        <li class="active"><a href="#" ng-click="ct.fetchAllRooms()" data-toggle="modal" data-target="#allRoomsModal" >Rooms</a></li>
 			        <li class="active"><a href="/rooms?form">Create room</a></li>   
 			        <li class="active"><a href="#" ng-click="ct.fetchAllMyRooms()" data-toggle="modal" data-target="#myrooms" >My rooms</a></li>
-			        <li class="active"><a href="/users/registration?edit">Edit my info</a></li>
+			        <li class="active"><a href="/users/registration?form">Edit my info</a></li>				    
 			      </ul>
-			      <ul class="nav navbar-nav navbar-right">			      	
+			      <ul class="nav navbar-nav navbar-right">			       
+			      	 	<li sec:authorize="hasRole('ROLE_ADMIN')">					        		        	
+					        	<a href="/admin/admin_page">Go to admin page</a>					        	
+					    </li>      
 				        <li>
 				        	<a href="/logout">
 					        	<span class="glyphicon glyphicon-log-out"></span> 
@@ -120,7 +125,8 @@
 					        </div>
 					      </div>
 					    </div>					
-					  </div>    								   
+					  </div>  
+												   
 				</div> 	 
 				<div id="msgs_div" class="col-sm-9">
       				<h4><small>RECENT MESSAGES {{currentRoom.obj.name}}</small></h4>
@@ -131,7 +137,7 @@
 						 	<li class="active" ng-repeat="message in currentRoom.messages">
 						 		<img class="oneline" ng-src="/users/{{message.owner}}/image" 
 						 			onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
-						 		<h5 class="oneline"> {{message.owner}} ({{message.serverTime}}): {{message.text}}</h5>
+						 		<h5 class="oneline"> <h5 class="oneline" style="color:green">{{message.owner}}</h5> ({{message.serverTime}}): {{message.text}}</h5>
 						 	</li>  	
 						</ul>
 					</div>		

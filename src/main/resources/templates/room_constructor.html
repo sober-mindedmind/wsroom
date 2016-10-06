@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8"></meta>
 <title>Insert title here</title>
-<link rel="stylesheet" href="css/bootstrap.min.css"/>
-<script type="text/javascript" src="js/jquery-3.1.0.min.js" ></script>
-<script src="js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="/css/bootstrap.min.css"/>
+<script type="text/javascript" src="/js/jquery-3.1.0.min.js" ></script>
+<script src="/js/bootstrap.min.js"></script>
 </head>
 <body>
 <div class="container">
-	<form th:action="@{/rooms}" method="post" th:object="${room}" enctype="multipart/form-data">
+	<form method="post" th:object="${room}" enctype="multipart/form-data">
 	
             <div class="form-group">
 	             <label for="name">Room name:</label>
-	             <input id="name" type="text" class="form-control" th:field="*{name}" placeholder="Enter room name"	/>
+	             <input type="text" class="form-control" th:field="*{name}" placeholder="Enter room name"	/>
 	             <p th:if="${#fields.hasErrors('name')}"  th:errors="*{name}" style="color:red;"> Incorrect name </p>
             </div>
             
@@ -47,6 +47,20 @@
 	            		    th:checked="${#lists.contains(room.allowedUsers, user)}" /></p>
 		      	</tr> 
 	      	</div> 
+	      	
+	      	<div sec:authorize="hasRole('ROLE_ADMIN')">
+				<div class="form-group">                        
+	                <label for="owners">Choose the owner of this room:</label>
+		            <tr id="owners" th:each="owner : ${owners}">	            
+		            	<p><input type="radio"
+		            			name="ownerId"						  
+		            		    th:value="${owner.id}" 
+		            		    th:text="${owner.name}"
+		            		    th:checked="${#lists.contains(owners, room.owner)}" /></p>
+			      	</tr> 
+		     	</div> 
+			</div>					
+	      	
             <div class="form-group">
              	<input class="btn btn-default" type="submit" value="Create/Update room"/>
             </div>

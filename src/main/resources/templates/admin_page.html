@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+</meta>
+<link rel="stylesheet" href="/css/bootstrap.min.css"/>
+<script type="text/javascript" src="/js/jquery-3.1.0.min.js" ></script>
+<script src="/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/js/angular.min.js"></script>
+<script type="text/javascript" src="/js/app/chat_module.js"></script>
+<script type="text/javascript" src="/js/app/chat_service.js"></script>
+<script type="text/javascript" src="/js/app/user_service.js"></script>
+<script type="text/javascript" src="/js/app/room_service.js"></script>
+<script type="text/javascript" src="/js/app/admin_controller.js"></script>
+<script type="text/javascript" src="/js/app/wsconnector.js"></script>
+<script type="text/javascript" src="/js/stomp.js"></script>
+</head>
+<body ng-app="ChatModule">
+<div>
+	<div ng-controller="AdminController as ct" class="container">
+    	<ul class="nav nav-tabs">
+		    <li class="active"><a data-toggle="tab" href="#usersTab">Users</a></li>
+		    <li><a data-toggle="tab" href="#roomsTab">Rooms</a></li>		    
+		  </ul>
+
+		<div class="tab-content">
+			<div id="usersTab" class="tab-pane fade in active">
+				<p>
+					<a ng-href="/admin/users/registration?form">Create a new user</a>
+				</p>
+				<p>
+					<label for="users">Users in the system:</label>
+					<ul id="users" style="list-style-type: none" ng-repeat="user in users">
+						<li>
+							<span ng-click="ct.removeUser(user)" 
+								  class="glyphicon glyphicon-remove"> 
+						 	</span>
+							<a ng-href="/admin/users/registration?form&amp;id={{user.id}}">{{user.name}}</a>
+						</li>
+					</ul>
+				</p>				
+			</div>
+			<div id="roomsTab" class="tab-pane fade">
+				<p>
+					<label for="rooms">Rooms in the system:</label>
+					<ul id = "rooms" style="list-style-type: none" ng-repeat="room in rooms">
+						<li>
+							<span ng-click="ct.removeRoom(room)" 
+								  class="glyphicon glyphicon-remove"> 
+						 	</span>
+							<a ng-href="/admin/rooms?form&amp;name={{room.name}}">{{room.name}}</a>
+						</li>
+					</ul>
+				</p>
+			</div>
+		</div>		
+	</div>
+</div>
+</body>
+</html>

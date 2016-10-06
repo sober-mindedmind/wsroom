@@ -11,7 +11,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class GlobalExceptionHandler
 {
 	@ExceptionHandler(Exception.class)
-	@ResponseStatus(BAD_REQUEST)	
+	@ResponseStatus(BAD_REQUEST)
 	public ModelAndView onException(Exception e)
 	{
 		ModelAndView modelAndView = new ModelAndView();

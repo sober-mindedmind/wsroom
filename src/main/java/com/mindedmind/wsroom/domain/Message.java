@@ -3,7 +3,9 @@ package com.mindedmind.wsroom.domain;
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.PreRemove;
 import javax.persistence.Table;
 
 @Entity
@@ -14,10 +16,10 @@ public class Message extends AbstractEntity
 	
 	private Date time;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private User owner;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private Room room;
 
 	public String getText()
