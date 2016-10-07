@@ -50,7 +50,6 @@ public class ChatController
 	
 	private final RoomService roomService;
 	
-	@Autowired
 	public ChatController(ChatService chatService, 
 						  UserService userService,
 						  RoomService roomService)

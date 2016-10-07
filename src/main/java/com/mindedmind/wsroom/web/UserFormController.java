@@ -42,7 +42,7 @@ public class UserFormController
 	private final ChatService chatService;
 	
 	public UserFormController(ChatService chatService, UserService userService)
-	{	
+	{
 		this.userService = userService;
 		this.chatService = chatService;
 	}
@@ -51,11 +51,11 @@ public class UserFormController
 	public String registrationForm(Model model,
 								   @AuthenticationPrincipal UserDetailsImpl auth)
 	{		
-		User currentUser;		
-		if (auth == null)
+		User currentUser;
+		if (auth == null || auth.getUser() == null)
 		{
 			currentUser = new User();
-		}	
+		}
 		else
 		{
 			currentUser = auth.getUser();

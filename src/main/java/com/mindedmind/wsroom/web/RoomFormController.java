@@ -42,7 +42,6 @@ public class RoomFormController
 	
 	private final ChatService chatService;
 	
-	@Autowired
 	public RoomFormController(UserService userService,
 						  	  RoomService roomService,
 						  	  ChatService chatService)
