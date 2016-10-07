@@ -44,7 +44,7 @@ import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(ChatController.class)
+@WebMvcTest(value = ChatController.class, secure = false)
 public class ChatControllerTest
 {
 

@@ -21,7 +21,7 @@ import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.UserService;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(UserFormController.class)
+@WebMvcTest(value = UserFormController.class, secure = false)
 public class UserControllerTest
 {
 	@Autowired
