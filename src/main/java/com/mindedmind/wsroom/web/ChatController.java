@@ -125,6 +125,7 @@ public class ChatController
 	{			
 		Room room = roomService.findByName(name);
 		roomService.delete(room);
+		chatService.deactiveAll(name);
 	}
 		
 	@GetMapping("/rooms/{name}/image")
@@ -186,6 +187,7 @@ public class ChatController
 	public void removeUser(@PathVariable("name") String name)
 	{
 		userService.removeUser(name);
+		chatService.deactiveUser(name);
 	}
 		
 	@GetMapping("/rooms/myrooms")

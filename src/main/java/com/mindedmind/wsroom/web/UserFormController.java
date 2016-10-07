@@ -12,7 +12,6 @@ import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,7 +19,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
@@ -34,7 +32,6 @@ import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
 import com.mindedmind.wsroom.util.ImageUtils;
 
 @Controller
-@RequestMapping
 @SessionAttributes({"user", "oldName"})
 public class UserFormController
 {	
@@ -44,13 +41,12 @@ public class UserFormController
 	
 	private final ChatService chatService;
 	
-	@Autowired
 	public UserFormController(ChatService chatService, UserService userService)
 	{	
 		this.userService = userService;
 		this.chatService = chatService;
-	}	
-
+	}
+	
 	@GetMapping(value = "/users/registration", params = "form")
 	public String registrationForm(Model model,
 								   @AuthenticationPrincipal UserDetailsImpl auth)

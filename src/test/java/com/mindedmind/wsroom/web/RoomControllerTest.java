@@ -67,7 +67,7 @@ public class RoomControllerTest
 		UsernamePasswordAuthenticationToken authToken = Mockito.mock(UsernamePasswordAuthenticationToken.class);
 		when(authToken.getPrincipal()).thenReturn(new UserDetailsImpl(owner));
 		
-		mvc.perform(MockMvcRequestBuilders.post("/rooms")
+		mvc.perform(MockMvcRequestBuilders.post("/rooms?form=null")
 				.param("name" , "room1")
 				.param("password" , "password")
 				.param("description" , "the room")

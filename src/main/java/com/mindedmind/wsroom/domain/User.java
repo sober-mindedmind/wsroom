@@ -1,6 +1,7 @@
 package com.mindedmind.wsroom.domain;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -12,7 +13,9 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.JoinTable;
 import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
@@ -53,7 +56,7 @@ public class User extends AbstractEntity
 	@Enumerated(EnumType.STRING)
 	@ElementCollection(fetch = FetchType.EAGER)
 	private Set<Role> roles = new HashSet<>(10);
-	
+		
 	public byte[] getPhoto()
 	{
 		return photo;
@@ -156,5 +159,4 @@ public class User extends AbstractEntity
 	{
 		this.roles = roles;
 	}
-
 }

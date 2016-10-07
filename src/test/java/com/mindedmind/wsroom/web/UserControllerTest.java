@@ -45,8 +45,8 @@ public class UserControllerTest
 		User user = new User();
 		user.setName("user1");
 		user.setPassword("");
-		mvc.perform(MockMvcRequestBuilders.post("/users/registration")
-				.sessionAttr("user" , user)
+		mvc.perform(MockMvcRequestBuilders.post("/users/registration?form=null")
+				.sessionAttr("user" , user)				
 				.param("name" , "user")
 				.param("password" , "password"))
 			.andExpect(MockMvcResultMatchers.view().name("redirect:/login"));

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -121,7 +122,7 @@ public class ChatControllerTest
 		r1.setName("R1");
 		Room r2 = new Room();
 		r2.setName("R2");
-		when(roomService.getSubsribedRooms("user")).thenReturn(Arrays.asList(r1, r2));	
+		when(roomService.getSubsribedRooms("user")).thenReturn(new HashSet<>(Arrays.asList(r1, r2)));	
 		when(chatService.getActiveUsers(Mockito.any(String.class))).thenReturn(null);		
 		mvc.perform(MockMvcRequestBuilders.get("/users/rooms/").principal(() -> "user"))
 				.andExpect(MockMvcResultMatchers.content()
@@ -136,7 +137,7 @@ public class ChatControllerTest
 		r1.setName("R1");
 		Room r2 = new Room();
 		r2.setName("R2");				
-		when(roomService.getAllRooms("user")).thenReturn(Arrays.asList(r1, r2));
+		when(roomService.getAllRooms("user")).thenReturn(new HashSet<>(Arrays.asList(r1, r2)));
 		mvc.perform(MockMvcRequestBuilders.get("/rooms").principal(() -> "user"))
 			.andExpect(MockMvcResultMatchers.content()
 			.json(new ObjectMapper().writeValueAsString(Arrays.asList(new RoomDto(r1), 

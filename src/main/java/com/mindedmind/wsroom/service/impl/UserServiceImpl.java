@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.repository.MessageRepository;
 import com.mindedmind.wsroom.repository.RoomRepository;
@@ -25,15 +26,15 @@ public class UserServiceImpl implements UserService
 	private final MessageRepository messageRepository;
 	
 	private final RoomRepository roomRepository; 
-	
+		
 	@Autowired
 	public UserServiceImpl(UserRepository userRepository, 
 						   MessageRepository messageRepository,
 						   RoomRepository roomRepository)
 	{
-		this.userRepository = userRepository;
+		this.userRepository    = userRepository;
 		this.messageRepository = messageRepository;
-		this.roomRepository = roomRepository; 
+		this.roomRepository    = roomRepository;
 	}
 
 	@Override public void save(User user)
@@ -84,6 +85,11 @@ public class UserServiceImpl implements UserService
 		}
 		messageRepository.deleteAllMessagesOfUser(user);
 		roomRepository.deleteAllRoomsWhereUserIsOwner(user);
+		for (Room r : roomRepository.findUserRooms(name))
+		{
+			r.getSubscribedUsers().remove(user);
+			r.getAllowedUsers().remove(user);
+		}
 		userRepository.delete(user);
 	}	
 }
