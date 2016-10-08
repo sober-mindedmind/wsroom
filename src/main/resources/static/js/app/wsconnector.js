@@ -1,5 +1,5 @@
 /** 
- * class WSConnection.  Responsible for establishing web-socket connections. The web-socket connection is established 
+ * class WSConnection.  Responsible for establishing the web-socket connections. The web-socket connection is established 
  * over STOMP protocol.  
  */
 var Path =
@@ -50,6 +50,9 @@ WSConnection.prototype.disconnect = function()
 WSConnection.prototype.unsubscribe = function(room)
 {	
 	this.stompClient.unsubscribe(Path.CHAT_TOPIC_DEST + room);	
+	this.stompClient.unsubscribe(Path.USER_JOIN_TOPIC_DEST + room);
+	this.stompClient.unsubscribe(Path.TYPING_TOPIC_DEST + room);
+	this.stompClient.unsubscribe(Path.USER_LEAVE_TOPIC_DEST + room);
 }
 
 WSConnection.prototype.sendTyping = function (room, text)

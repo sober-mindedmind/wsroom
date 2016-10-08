@@ -17,6 +17,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +34,7 @@ import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.dto.ChatMessageDto;
 import com.mindedmind.wsroom.dto.ErrorDto;
 import com.mindedmind.wsroom.dto.RoomDto;
+import com.mindedmind.wsroom.dto.TypingDto;
 import com.mindedmind.wsroom.dto.UserDto;
 import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
@@ -80,9 +82,10 @@ public class ChatController
 	}
 		
 	@MessageMapping("/typing/{room}")
-	public UserDto handleTyping(Principal principal)
+	public TypingDto handleTyping(Principal principal, 
+								  @DestinationVariable("room") String roomName)
 	{
-		return new UserDto(principal.getName());
+		return new TypingDto(principal.getName(), roomName);
 	}	
 	
 	/**
@@ -187,6 +190,13 @@ public class ChatController
 	{
 		userService.removeUser(name);
 		chatService.deactiveUser(name);
+	}
+	
+	@GetMapping("/users/principal")
+	@ResponseBody
+	public UserDto getPrincipal(@AuthenticationPrincipal(expression = "user") User user)
+	{
+		return new UserDto(user);
 	}
 		
 	@GetMapping("/rooms/myrooms")

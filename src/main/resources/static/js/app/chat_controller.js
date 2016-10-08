@@ -6,6 +6,8 @@ angular.module('ChatModule').controller('ChatController',
 		['$scope', 'ChatService', 'RoomService', 'UserService',
 		 function($scope, ChatService, RoomService, UserService) 
 		 {
+			ChatService.connect(window.location.hostname)
+			UserService.getPrincipal().then(function(principal){$scope.principal = principal})
 			$scope.allMyRooms = []
 			$scope.rooms = {}
 			$scope.currentRoom = null
@@ -14,7 +16,8 @@ angular.module('ChatModule').controller('ChatController',
 			$scope.visibleRooms = false
 			$scope.allRooms = {};
 			$scope.notification = ''
-			var self = this									
+			var self = this
+			var typedChars = 0
 			this.fetchAllRooms = function()
 			{
 				RoomService.getAllRooms().then
@@ -35,8 +38,8 @@ angular.module('ChatModule').controller('ChatController',
 			}	
 			
 			this.startTyping = function()
-			{
-				if ($scope.currentRoom)
+			{				
+				if ($scope.currentRoom && typedChars++ % 3 == 0)
 				{
 					ChatService.connection.sendTyping($scope.currentRoom.obj.name, '')
 				}
@@ -64,7 +67,8 @@ angular.module('ChatModule').controller('ChatController',
 				else
 				{
 					this.notification("You did not specify a chat room. At first choose room")
-				}				
+				}	
+				typedChars = 0
 			}
 			
 			this.subscribe = function(room)
@@ -81,8 +85,12 @@ angular.module('ChatModule').controller('ChatController',
 						},						
 			 		ontyping :  function(frame) 
 			 		{
-			 			self.notification("User " + JSON.parse(frame.body).name + " is typing a message", 1000)
-			 			$scope.$apply()			 			
+			 			var typing = JSON.parse(frame.body)
+			 			if (typing.userName !== $scope.principal.name)
+			 			{
+			 				self.notification("User " + typing.userName + " is typing a message in " + typing.roomName, 1500)
+			 				$scope.$apply()
+			 			}		 			
 			 		}, 
 			 		onmessage : function(frame)
 			 		{		 			
@@ -94,7 +102,7 @@ angular.module('ChatModule').controller('ChatController',
 			 			var userName = JSON.parse(frame.body).name;
 			 			self.notification("User " + userName + " is leaving us") 
 			 			var users = $scope.rooms[room].users
-			 			users.splice(users.indexOf(userName), 1)
+			 			Util.removeElement(users, userName)
 			 			$scope.$apply()		 			
 			 		}, 
 				}				
@@ -133,15 +141,15 @@ angular.module('ChatModule').controller('ChatController',
 			            			{
 			            				roomModel.users.push(user)
 				            		})
-			            		}		            		
+			            		}
 			            	})
-			            				            	
+			            			            	
 			            	if (connectToRooms)
 		            		{
 			            		rooms.forEach(function(room)
 			            		{
 			            			self.subscribe(room.name)
-			            			setTimeout(function(){$('#' + room.name).collapse('hide')}, 400);
+			            			setTimeout(function(){$('#' + room.name).collapse('hide')}, 500);
 			            		})
 		            		}
 			            },
@@ -155,18 +163,18 @@ angular.module('ChatModule').controller('ChatController',
 			{				
 				if ($scope.allRooms)
 				{
-					var rooms = []					
-					$scope.allRooms.forEach(function(e) 
+					var rooms = []
+					$scope.allRooms.forEach(function(e)
 					{
 						if (e.checked)
 						{
-							delete e.checked 
+							delete e.checked
 							rooms.push(e)
 						}
 					})
 					if (rooms.length > 0)
 					{
-						var self = this					
+						var self = this
 						UserService.subscribeOnRooms(rooms).then(function()
 						{
 							self.showChat(true)

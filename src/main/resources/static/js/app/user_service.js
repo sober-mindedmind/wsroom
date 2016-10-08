@@ -18,6 +18,10 @@ angular.module('ChatModule')
 				removeUser : function(userId)
 				{
 					return deferResult(function(){return $http['delete']("/users/" + userId)})
+				},
+				getPrincipal : function()
+				{
+					return deferResult(function(){return $http.get("/users/principal")})
 				}
 			}
 

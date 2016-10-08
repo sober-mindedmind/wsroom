@@ -33,7 +33,7 @@ angular.module('ChatModule').controller('AdminController',
 				(
 						function() 
 						{
-							removeElement($scope.users, user)
+							Util.removeElement($scope.users, user)
 						}, 
 						function()
 						{
@@ -47,7 +47,7 @@ angular.module('ChatModule').controller('AdminController',
 				(
 						function() 
 						{
-							removeElement($scope.rooms, room)
+							Util.removeElement($scope.rooms, room)
 						}, 
 						function()
 						{
@@ -55,11 +55,4 @@ angular.module('ChatModule').controller('AdminController',
 						}
 				)
 			}
-			
-			function removeElement(arr, el)
-			{
-				arr.splice(arr.indexOf(el), 1)
-			}
-			
-			
 		}])

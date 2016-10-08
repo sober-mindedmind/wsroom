@@ -3,20 +3,16 @@
  */
  
 var ChatModule = angular.module('ChatModule',[]);
-/*
+
+/* Utility class */
 function Util() 
 {}
 
-Util.deferResult = function deferResult(asyncCall) 
+Util.removeElement = function removeElement(arr, el)
 {
-	var deferred = $q.defer();
-	asyncCall().then(function (response){deferred.resolve(response.data);},
-		             function(errResponse)
-		             {   
-						console.error('Error while making request');
-		                deferred.reject(errResponse);
-		             }		           
-    );
-	return deferred.promise;
-}	*/	
-	
+	var index = arr.indexOf(el)
+	if (index > -1)
+	{
+		arr.splice(index, 1)
+	}	
+}
