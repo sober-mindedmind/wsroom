@@ -82,6 +82,11 @@ public class User extends AbstractEntity
 		return active;
 	}
 
+	public Boolean getActive()
+	{
+		return active;
+	}
+	
 	public String getEmail()
 	{
 		return email;
