@@ -85,6 +85,8 @@ public class UserServiceImpl implements UserService
 		}
 		messageRepository.deleteAllMessagesOfUser(user);
 		roomRepository.deleteAllRoomsWhereUserIsOwner(user);
+		
+		/* Unsubscribe and unallow user */
 		for (Room r : roomRepository.findUserRooms(name))
 		{
 			r.getSubscribedUsers().remove(user);

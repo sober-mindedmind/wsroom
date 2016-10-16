@@ -26,6 +26,6 @@ public interface UserService
 	
 	void removeUser(Long id);
 	
-	@PreAuthorize("#name == principal.username or hasRole('ROLE_ADMIN')")
+	@PreAuthorize("#name == principal.user.name or hasRole('ROLE_ADMIN')")
 	void removeUser(String name);
 }

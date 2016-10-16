@@ -8,16 +8,28 @@ angular.module('ChatModule').controller('ChatController',
 		 {
 			ChatService.connect(window.location.hostname)
 			UserService.getPrincipal().then(function(principal){$scope.principal = principal})
+			
+			/* rooms that were created by the current user */
 			$scope.allMyRooms = []
+			
+			/* rooms to which the current user is connected */
 			$scope.rooms = {}
+			
+			/* currently active room */
 			$scope.currentRoom = null
+			
 			$scope.messageContent = ''
 			$scope.visibleChat = true;
 			$scope.visibleRooms = false
+			
+			/* all rooms registered in the application */
 			$scope.allRooms = {};
+			
 			$scope.notification = ''
 			var self = this
 			var typedChars = 0
+			
+			/** Fetches all rooms created in the application */
 			this.fetchAllRooms = function()
 			{
 				RoomService.getAllRooms().then
@@ -28,14 +40,6 @@ angular.module('ChatModule').controller('ChatController',
 					}
 				)
 			}
-						
-			this.showChat = function(refresh)	
-			{
-				if (refresh)
-				{
-					this.fetchSubscribedRooms(false);
-				}
-			}	
 			
 			this.startTyping = function()
 			{				
@@ -71,40 +75,63 @@ angular.module('ChatModule').controller('ChatController',
 				typedChars = 0
 			}
 			
+			/** Subscribes the current user on the given room */
 			this.subscribe = function(room)
-			{				
+			{
 				var callbacks = {
-					onnewuser :
-						function(frame) 
-						{
-							console.log(frame.body)
-							var userName = JSON.parse(frame.body).name;
-							self.notification("User " + userName + " has been connected")
-							$scope.rooms[room].users.push(userName)
-							$scope.$apply()							
-						},						
-			 		ontyping :  function(frame) 
+						
+					/** Will be called when a new user connects to some room to which the current user is already connected */
+					onnewuser :	function(frame) 
+					{
+						console.log(frame.body)
+						var userName = JSON.parse(frame.body).name;
+						self.notification("User " + userName + " has been connected")
+						$scope.rooms[room].users.push(userName)
+						$scope.$apply()
+					},
+					
+					/** Will be called when some user in a room starts to typing a message */
+			 		ontyping :  function(frame)
 			 		{
 			 			var typing = JSON.parse(frame.body)
 			 			if (typing.userName !== $scope.principal.name)
 			 			{
 			 				self.notification("User " + typing.userName + " is typing a message in " + typing.roomName, 1500)
 			 				$scope.$apply()
-			 			}		 			
+			 			}
 			 		}, 
+			 		
+			 		/** Will be called when a new message arrives */
 			 		onmessage : function(frame)
 			 		{		 			
 			 			$scope.rooms[room].messages.push(JSON.parse(frame.body))			 		
-			 		    $scope.$apply()			 		   
+			 		    $scope.$apply() 		   
 			 		},
+			 		
+			 		/** Will be called when a user in a room disconnects from room */
 			 		onuserleave :  function(frame) 
 			 		{
 			 			var userName = JSON.parse(frame.body).name;
-			 			self.notification("User " + userName + " is leaving us") 
+			 			self.notification("User " + userName + " is leaving us")
 			 			var users = $scope.rooms[room].users
 			 			Util.removeElement(users, userName)
 			 			$scope.$apply()		 			
-			 		}, 
+			 		},
+			 		
+			 		/** Will be called when some user in a room deletes his message from the chat */
+			 		ondeletemsg: function(frame)
+			 		{
+			 			var id = JSON.parse(frame.body)
+			 			var messages = $scope.currentRoom.messages
+			 			for (var i = 0; i < messages.length; i++)
+			 			{
+			 				if (messages[i].id === id)
+			 				{
+			 					Util.removeElement(messages, messages[i])
+			 				}
+			 			}
+			 			$scope.$apply()
+			 		}
 				}				
 				ChatService.connection.subscribe(room, callbacks)
 			}
@@ -142,6 +169,10 @@ angular.module('ChatModule').controller('ChatController',
 			            				roomModel.users.push(user)
 				            		})
 			            		}
+			            		if (room.messages)
+			            		{
+			            			roomModel.messages = room.messages
+			            		}			            		
 			            	})
 			            			            	
 			            	if (connectToRooms)
@@ -177,13 +208,9 @@ angular.module('ChatModule').controller('ChatController',
 						var self = this
 						UserService.subscribeOnRooms(rooms).then(function()
 						{
-							self.showChat(true)
+							this.fetchSubscribedRooms(false);
 							rooms.forEach(function(room){self.subscribe(room.name)})
 						})
-					}
-					else
-					{
-						self.showChat(false)
 					}
 				}
 			}
@@ -197,6 +224,16 @@ angular.module('ChatModule').controller('ChatController',
 			{
 				RoomService.removeRoom(roomName).then(function(){$scope.allMyRooms.splice($scope.allMyRooms.indexOf(roomName), 1)}) 
 			}
+			
+			/** 
+			 * Removes the specified message from the room, all clients of the current room will be notified if the message
+			 * is successfully removed
+			 */
+			this.removeMessage = function(message)
+			{
+				/* TODO replace room name on room id*/
+				UserService.removeMessage(message.ownerId, $scope.currentRoom.obj.name, message.id)
+			}	
 			
 			this.fetchSubscribedRooms(true);
 		 }]);

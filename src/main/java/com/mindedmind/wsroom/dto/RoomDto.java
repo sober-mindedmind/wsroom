@@ -1,14 +1,7 @@
 package com.mindedmind.wsroom.dto;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.util.Set;
 
 import com.mindedmind.wsroom.domain.Room;
 
@@ -16,20 +9,18 @@ public class RoomDto
 {
 	private Long id;
 	
-	@NotNull
-	@Size(min = 3)
 	private String name;
 	
 	private transient String password;
 		
 	private String description;
-
-	private List<String> allowedUserIds = new ArrayList<>();
 	
 	/** Amount of active users */
 	private int usersCount;
 	
-	private Collection<String> activeUsers;
+	private Set<String> activeUsers;
+	
+	private Set<ChatMessageDto> preview;
 	
 	private boolean active;
 	
@@ -83,25 +74,10 @@ public class RoomDto
 	{
 		this.description = description;
 	}
-
-	public List<String> getAllowedUserIds()
-	{	
-		return allowedUserIds;
-	}
-
-	public List<Long> gerAllowedUsersLongIds()
-	{
-		return allowedUserIds.stream().filter(e -> e != null).map(Long::valueOf).collect(toList());
-	}
 	
 	public boolean isActive()
 	{
 		return active;
-	}
-
-	public void setAllowedUserIds(List<String> allowedUserIds)
-	{
-		this.allowedUserIds = allowedUserIds;
 	}
 
 	public void setActive(boolean active)
@@ -129,12 +105,12 @@ public class RoomDto
 		this.usersCount = usersCount;
 	}
 
-	public Collection<String> getActiveUsers()
+	public Set<String> getActiveUsers()
 	{
 		return activeUsers;
 	}
 
-	public void setActiveUsers(Collection<String> activeUsers)
+	public void setActiveUsers(Set<String> activeUsers)
 	{
 		this.activeUsers = activeUsers;
 		if (activeUsers != null)
@@ -143,11 +119,6 @@ public class RoomDto
 		}
 	}
 	
-	public boolean isContainsAllowedUsers() 
-	{
-		return getAllowedUserIds() != null && !getAllowedUserIds().isEmpty();
-	}
-
 	public Long getId()
 	{
 		return id;
@@ -156,5 +127,15 @@ public class RoomDto
 	public void setId(Long id)
 	{
 		this.id = id;
+	}
+
+	public Set<ChatMessageDto> getPreview()
+	{
+		return preview;
+	}
+
+	public void setPreview(Set<ChatMessageDto> preview)
+	{
+		this.preview = preview;
 	}
 }

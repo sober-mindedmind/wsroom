@@ -1,13 +1,35 @@
 package com.mindedmind.wsroom.dto;
 
+import com.mindedmind.wsroom.domain.Message;
+
 public class ChatMessageDto
 {
+	private Long id;
+	
 	private String text;
 	
 	private String serverTime;
 	
 	private String owner;
+	
+	private Long ownerId;
+	
+	private Long roomId;
 
+	public ChatMessageDto()
+	{}
+	
+	public ChatMessageDto(Message message)
+	{
+		setId(message.getId());
+		setText(message.getText());
+		setServerTime(message.getTime().toString());
+		setOwner(message.getOwner().getName());
+		setOwnerId(message.getOwner().getId());
+		setRoomId(message.getRoom().getId());
+	}
+	
+	
 	public String getServerTime()
 	{
 		return serverTime;
@@ -37,4 +59,40 @@ public class ChatMessageDto
 	{
 		this.owner = owner;
 	}
+
+	public Long getId()
+	{
+		return id;
+	}
+
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
+
+	public Long getOwnerId()
+	{
+		return ownerId;
+	}
+
+	public Long getRoomId()
+	{
+		return roomId;
+	}
+
+	public void setOwnerId(Long ownerId)
+	{
+		this.ownerId = ownerId;
+	}
+
+	public void setRoomId(Long roomId)
+	{
+		this.roomId = roomId;
+	}
+
+	@Override public String toString()
+	{
+		return "ChatMessageDto [id=" + id + ", text=" + text + ", serverTime=" + serverTime + ", owner=" + owner
+				+ ", ownerId=" + ownerId + ", roomId=" + roomId + "]";
+	}	
 }

@@ -137,7 +137,13 @@
 						 	<li class="active" ng-repeat="message in currentRoom.messages">
 						 		<img class="oneline" ng-src="/users/{{message.owner}}/image" 
 						 			onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
-						 		<h5 class="oneline"> <h5 class="oneline" style="color:green">{{message.owner}}</h5> ({{message.serverTime}}): {{message.text}}</h5>
+						 		<h5 class="oneline"> 
+						 			<h5 class="oneline" style="color:green">
+						 				{{message.owner}}
+						 			</h5> 
+						 			({{message.serverTime}}): {{message.text}}
+						 			<span ng-show="message.ownerId == principal.id" ng-click="ct.removeMessage(message)" class="oneline glyphicon glyphicon-remove"/>			
+						 		</h5>
 						 	</li>  	
 						</ul>
 					</div>		

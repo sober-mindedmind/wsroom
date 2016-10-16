@@ -56,7 +56,7 @@ public class ChatServiceImpl implements ChatService
 		messageRepository.save(msg);
 	}
 
-	@Override public Collection<String> getActiveUsers(String room)
+	@Override public Set<String> getActiveUsers(String room)
 	{
 		return roomsOnActiveUsers.get(room);
 	}
@@ -126,5 +126,10 @@ public class ChatServiceImpl implements ChatService
 	private void sendLeave(String user, String roomName)
 	{
 		messagingTemplate.convertAndSend(USER_LEAVE_TOPIC_DEST + roomName, new UserDto(user));	
+	}
+
+	@Override public void removeMessage(Long userId, Long msgId)
+	{
+		messageRepository.deleteUserMessage(userId , msgId);
 	}
 }

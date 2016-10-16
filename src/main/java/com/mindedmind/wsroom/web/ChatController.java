@@ -1,5 +1,6 @@
 package com.mindedmind.wsroom.web;
 
+import static com.mindedmind.wsroom.wsevent.DestinationPath.DELETE_MESSAGE_TOPIC_DEST;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -11,11 +12,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -52,13 +53,17 @@ public class ChatController
 	
 	private final RoomService roomService;
 	
+	private final SimpMessagingTemplate messagingTemplate;
+	
 	public ChatController(ChatService chatService, 
 						  UserService userService,
-						  RoomService roomService)
+						  RoomService roomService,
+						  SimpMessagingTemplate messagingTemplate)
 	{
 		this.chatService = chatService;
 		this.userService = userService;
 		this.roomService = roomService;
+		this.messagingTemplate = messagingTemplate;
 	}
 		
 	@MessageMapping("/chat/{room}")
@@ -67,16 +72,19 @@ public class ChatController
 									 	Authentication auth)
 	{		
 		User currentUser = ((UserDetailsImpl)auth.getPrincipal()).getUser();
-		Date currentDate = new Date();
-		messageDto.setServerTime(currentDate.toString());		
-		messageDto.setOwner(currentUser.getName());
-		
+		Date currentDate = new Date();				
 		Message msg = new Message();
 		msg.setText(messageDto.getText());
 		msg.setTime(currentDate);
 		msg.setOwner(currentUser);
 		chatService.saveMessage(msg, roomName);
 				
+		messageDto.setId(msg.getId());		
+		messageDto.setServerTime(currentDate.toString());		
+		messageDto.setOwner(currentUser.getName());
+		messageDto.setOwnerId(currentUser.getId());
+		messageDto.setRoomId(msg.getRoom().getId());
+		
 		/* send to /topic/chat/{room} */
 		return messageDto;
 	}
@@ -137,6 +145,11 @@ public class ChatController
 		return roomService.loadRoomImage(name);
 	}	
 	
+	/**
+	 * Returns all rooms in the application, call of this method is only acceptable for administrator.
+	 * 
+	 * @return all rooms in the application
+	 */
 	@GetMapping(value = "/rooms", params="all")
 	@ResponseBody
 	public Set<RoomDto> getAllRooms()
@@ -156,8 +169,9 @@ public class ChatController
 	public Collection<RoomDto> listSubscribedRooms(Principal principal)
 	{
 		Collection<RoomDto> dtos = roomService.getSubsribedRooms(principal.getName()).stream().map(room -> {			
-			RoomDto dto = new RoomDto(room);
+			RoomDto dto = new RoomDto(room);			
 			dto.setActiveUsers(chatService.getActiveUsers(room.getName()));
+			
 			return dto;
 		}).collect(toList());
 		return dtos;
@@ -190,6 +204,16 @@ public class ChatController
 	{
 		userService.removeUser(name);
 		chatService.deactiveUser(name);
+	}
+	
+	@DeleteMapping("/users/{userId}/rooms/{roomId}/messages/{msgId}")
+	@ResponseStatus(HttpStatus.OK)
+	public void removeMessage(@PathVariable("userId") Long userId,
+							  @PathVariable("roomId") String roomId,
+							  @PathVariable("msgId") Long msgId)
+	{
+		chatService.removeMessage(userId , msgId);
+		messagingTemplate.convertAndSend(DELETE_MESSAGE_TOPIC_DEST + roomId, msgId);
 	}
 	
 	@GetMapping("/users/principal")

@@ -22,6 +22,10 @@ angular.module('ChatModule')
 				getPrincipal : function()
 				{
 					return deferResult(function(){return $http.get("/users/principal")})
+				},
+				removeMessage : function(userId, roomId, msgId)
+				{
+					return deferResult(function(){return $http['delete']("/users/" + userId + "/rooms/" + roomId + "/messages/" + msgId)})
 				}
 			}
 

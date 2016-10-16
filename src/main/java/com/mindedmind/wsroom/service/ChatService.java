@@ -1,14 +1,20 @@
 package com.mindedmind.wsroom.service;
 
 import java.util.Collection;
+import java.util.Set;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.mindedmind.wsroom.domain.Message;
 
 public interface ChatService
 {
 	void saveMessage(Message msg, String roomName);
+	
+	@PreAuthorize("#userId == principal.user.id or hasRole('ROLE_ADMIN')")
+	void removeMessage(Long userId, Long msgId);
 
-	Collection<String> getActiveUsers(String room);
+	Set<String> getActiveUsers(String room);
 	
 	void deactiveUser(String user, String room);
 	
