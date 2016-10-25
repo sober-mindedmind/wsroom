@@ -16,7 +16,8 @@ var Path =
 		TYPING_APP_DEST   	    : "/app/typing/",
 		TYPING_TOPIC_DEST 	    : "/topic/typing/", 
 		
-		DELETE_MESSAGE_TOPIC_DEST : "/topic/delete_msg/"
+		DELETE_MESSAGE_TOPIC_DEST : "/topic/delete_msg/",
+		UPDATE_MESSAGE_TOPIC_DEST : "/topic/update_msg/"
 }
 
 function WSConnection(url)
@@ -38,8 +39,9 @@ WSConnection.prototype.subscribe = function (room, callbacks)
 	this.stompClient.subscribe(Path.USER_JOIN_TOPIC_DEST + room, callbacks.onnewuser);
 	this.stompClient.subscribe(Path.TYPING_TOPIC_DEST + room, callbacks.ontyping);
 	this.stompClient.subscribe(Path.CHAT_TOPIC_DEST + room, callbacks.onmessage);
-	this.stompClient.subscribe(Path.USER_LEAVE_TOPIC_DEST + room, callbacks.onuserleave);
+	this.stompClient.subscribe(Path.USER_LEAVE_TOPIC_DEST + room, callbacks.onuserleave);	
 	this.stompClient.subscribe(Path.DELETE_MESSAGE_TOPIC_DEST + room, callbacks.ondeletemsg);
+	this.stompClient.subscribe(Path.UPDATE_MESSAGE_TOPIC_DEST + room, callbacks.onupdatemsg);
 }
 
 WSConnection.prototype.disconnect = function()
@@ -57,6 +59,7 @@ WSConnection.prototype.unsubscribe = function(room)
 	this.stompClient.unsubscribe(Path.TYPING_TOPIC_DEST + room);
 	this.stompClient.unsubscribe(Path.USER_LEAVE_TOPIC_DEST + room);
 	this.stompClient.unsubscribe(Path.DELETE_MESSAGE_TOPIC_DEST + room);
+	this.stompClient.unsubscribe(Path.UPDATE_MESSAGE_TOPIC_DEST + room);
 }
 
 WSConnection.prototype.sendTyping = function (room, text)

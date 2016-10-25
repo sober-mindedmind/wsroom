@@ -142,7 +142,9 @@
 						 				{{message.owner}}
 						 			</h5> 
 						 			({{message.serverTime}}): {{message.text}}
-						 			<span ng-show="message.ownerId == principal.id" ng-click="ct.removeMessage(message)" class="oneline glyphicon glyphicon-remove"/>			
+						 			<span ng-show="message.ownerId == principal.id" ng-click="ct.removeMessage(message)" class="oneline glyphicon glyphicon-remove"/>						 			
+						 			<span ng-show="message.ownerId == principal.id" ng-click="ct.startEdit(message)" class="oneline glyphicon glyphicon-edit"/>
+						 									 			
 						 		</h5>
 						 	</li>  	
 						</ul>

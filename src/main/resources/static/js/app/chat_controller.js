@@ -28,6 +28,8 @@ angular.module('ChatModule').controller('ChatController',
 			$scope.notification = ''
 			var self = this
 			var typedChars = 0
+			var editableMessage = null
+			var edit = false
 			
 			/** Fetches all rooms created in the application */
 			this.fetchAllRooms = function()
@@ -65,7 +67,17 @@ angular.module('ChatModule').controller('ChatController',
 			{
 				if ($scope.currentRoom)
 				{
-					ChatService.connection.send($scope.currentRoom.obj.name, $scope.messageContent)
+					if (edit)
+					{
+						editableMessage.text = $scope.messageContent
+						editableMessage && this.updateMessage(editableMessage)
+						edit = false
+						editableMessage = null
+					}
+					else
+					{
+						ChatService.connection.send($scope.currentRoom.obj.name, $scope.messageContent)
+					}				
 					$scope.messageContent = ''
 				}	
 				else
@@ -108,7 +120,7 @@ angular.module('ChatModule').controller('ChatController',
 			 		    $scope.$apply() 		   
 			 		},
 			 		
-			 		/** Will be called when a user in a room disconnects from room */
+			 		/** Will be called when a user in a room disconnects from the room */
 			 		onuserleave :  function(frame) 
 			 		{
 			 			var userName = JSON.parse(frame.body).name;
@@ -118,21 +130,22 @@ angular.module('ChatModule').controller('ChatController',
 			 			$scope.$apply()		 			
 			 		},
 			 		
-			 		/** Will be called when some user in a room deletes his message from the chat */
+			 		/** Will be called when some user in a room deletes his message from the room */
 			 		ondeletemsg: function(frame)
 			 		{
-			 			var id = JSON.parse(frame.body)
-			 			var messages = $scope.currentRoom.messages
-			 			for (var i = 0; i < messages.length; i++)
-			 			{
-			 				if (messages[i].id === id)
-			 				{
-			 					Util.removeElement(messages, messages[i])
-			 				}
-			 			}
+			 			var id = JSON.parse(frame.body).id
+			 			findMessage(id, function(messages, msg){Util.removeElement(messages, msg)});			 			
+			 			$scope.$apply()
+			 		},
+			 		
+			 		/** Will be called when a user decides to update text data in a message */
+			 		onupdatemsg : function(frame)
+			 		{
+			 			var receivedMsg = JSON.parse(frame.body)
+			 			findMessage(receivedMsg.id, function(messages, msg){msg.text = receivedMsg.text});	
 			 			$scope.$apply()
 			 		}
-				}				
+				}
 				ChatService.connection.subscribe(room, callbacks)
 			}
 			this.unsubscribe = function(room)
@@ -140,6 +153,18 @@ angular.module('ChatModule').controller('ChatController',
 				ChatService.connection.unsubscribe(room)
 				delete $scope.rooms[room]
 			}
+			
+			function findMessage(id, action)
+			{
+				var messages = $scope.currentRoom.messages
+	 			for (var i = 0; i < messages.length; i++)
+	 			{
+	 				if (messages[i].id === id)
+	 				{
+	 					action(messages, messages[i]);	 					
+	 				}
+	 			}
+			}			
 			
 			function clearAfterDelay(time)
 			{
@@ -215,6 +240,19 @@ angular.module('ChatModule').controller('ChatController',
 				}
 			}
 			
+			this.startEdit = function(message)
+			{				 
+				if (edit = !edit)
+				{
+					$scope.messageContent = message.text
+					editableMessage = message
+				}
+				else
+				{
+					$scope.messageContent = ""
+				}				
+			}			
+			
 			this.fetchAllMyRooms = function()
 			{
 				RoomService.getMyRooms().then(function(rooms){$scope.allMyRooms = rooms;})
@@ -224,16 +262,21 @@ angular.module('ChatModule').controller('ChatController',
 			{
 				RoomService.removeRoom(roomName).then(function(){$scope.allMyRooms.splice($scope.allMyRooms.indexOf(roomName), 1)}) 
 			}
-			
+						
 			/** 
-			 * Removes the specified message from the room, all clients of the current room will be notified if the message
+			 * Removes the specified message from the current room, all clients of the current room will be notified if the message
 			 * is successfully removed
 			 */
 			this.removeMessage = function(message)
 			{
 				/* TODO replace room name on room id*/
-				UserService.removeMessage(message.ownerId, $scope.currentRoom.obj.name, message.id)
-			}	
+				UserService.removeMessage(message.owner, $scope.currentRoom.obj.name, message.id)
+			}			
+
+			this.updateMessage = function(message)
+			{
+				UserService.updateMessage(message.owner, $scope.currentRoom.obj.name, message)
+			}
 			
 			this.fetchSubscribedRooms(true);
 		 }]);

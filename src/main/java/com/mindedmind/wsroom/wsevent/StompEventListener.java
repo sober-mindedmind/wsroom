@@ -2,7 +2,7 @@ package com.mindedmind.wsroom.wsevent;
 
 import static com.mindedmind.wsroom.util.RoomUtils.extractPath;
 import static com.mindedmind.wsroom.util.RoomUtils.extractRoom;
-import static com.mindedmind.wsroom.wsevent.DestinationPath.CHAT_TOPIC_DEST;
+import static com.mindedmind.wsroom.wsevent.EventNotifier.CHAT_TOPIC;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,12 @@ public class StompEventListener
 	
 	private ChatService chatService;
 	
+	private EventNotifier notifier;
+	
 	@Autowired
-	public StompEventListener(ChatService chatService)
+	public StompEventListener(EventNotifier notifier, ChatService chatService)
 	{		
+		this.notifier = notifier;
 		this.chatService = chatService;
 	}
 	
@@ -33,10 +36,11 @@ public class StompEventListener
 	public void onSubscribe(SessionSubscribeEvent subEvent)		
 	{
 		StompHeaderAccessor header = StompHeaderAccessor.wrap(subEvent.getMessage());
-		if (extractPath(header.getDestination()).equals(CHAT_TOPIC_DEST))
+		if (extractPath(header.getDestination()).equals(CHAT_TOPIC))
 		{		
 			String roomName = extractRoom(header.getDestination());			
-			chatService.activeUser(header.getUser().getName() , roomName);		
+			chatService.activeUser(header.getUser().getName() , roomName);
+			notifier.notifyUserIsActive(roomName , header.getUser().getName());
 		}
 		LOGGER.debug("User '{}' has been subscribed", header.getUser().getName());
 	}
@@ -45,7 +49,7 @@ public class StompEventListener
 	public void onUnsubscribe(SessionUnsubscribeEvent subEvent)
 	{
 		StompHeaderAccessor header = StompHeaderAccessor.wrap(subEvent.getMessage());		
-		if (extractPath(header.getSubscriptionId()).equals(CHAT_TOPIC_DEST))
+		if (extractPath(header.getSubscriptionId()).equals(CHAT_TOPIC))
 		{
 			String roomName = extractRoom(header.getSubscriptionId());			
 			chatService.unsubscribe(header.getUser().getName() , roomName);			
@@ -57,6 +61,7 @@ public class StompEventListener
 	public void onDisconnect(SessionDisconnectEvent subEvent)
 	{
 		StompHeaderAccessor header = StompHeaderAccessor.wrap(subEvent.getMessage());
-		chatService.deactiveUser(header.getUser().getName());
-	}	
+		String name = header.getUser().getName();
+		notifier.notifyUserLeaveRooms(name, chatService.deactiveUser(name));
+	}
 }

@@ -147,7 +147,7 @@ public class ChatControllerTest
 	@Test
 	public void getUsersInRoom_RoomContainsUsers_True() throws Exception
 	{
-		when(chatService.getActiveUsers("room1")).thenReturn(Arrays.asList("user1", "user2"));
+		when(chatService.getActiveUsers("room1")).thenReturn(new HashSet<>(Arrays.asList("user1", "user2")));
 		mvc.perform(MockMvcRequestBuilders.get("/rooms/room1/ausers").principal(() -> "user"))
 			.andExpect(MockMvcResultMatchers.content()
 			.json(new ObjectMapper().writeValueAsString(Arrays.asList("user1", "user2"))));

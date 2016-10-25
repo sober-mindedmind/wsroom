@@ -10,7 +10,6 @@ import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,6 +28,7 @@ import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.util.ImageUtils;
+import com.mindedmind.wsroom.wsevent.EventNotifier;
 
 @Controller
 @SessionAttributes({"room", "roomName"})
@@ -42,13 +42,17 @@ public class RoomFormController
 	
 	private final ChatService chatService;
 	
+	private final EventNotifier notifier;
+	
 	public RoomFormController(UserService userService,
 						  	  RoomService roomService,
-						  	  ChatService chatService)
+						  	  ChatService chatService, 
+						  	  EventNotifier notifier)
 	{
 		this.userService = userService;
 		this.roomService = roomService;
 		this.chatService = chatService;
+		this.notifier = notifier;
 	}	
 	
 	@PostMapping(value = "/rooms", params = "form")
@@ -115,9 +119,9 @@ public class RoomFormController
 	}
 	
 	@GetMapping(value = "/rooms", params = "form")
-	public String roomConstructor(Model model, 
-								  @RequestParam(value = "name", required = false) String roomName, 
-								  Principal principal)
+	public String roomConstructorForm(Model model, 
+									 @RequestParam(value = "name", required = false) String roomName, 
+									 Principal principal)
 	{		
 		Room room;		
 		if (roomName == null)
@@ -137,13 +141,13 @@ public class RoomFormController
 	}	
 
 	@GetMapping(value = "/admin/rooms", params = "form")
-	public String adminRoomConstructor(Model model, 
-									   @RequestParam(value = "name", required = false) String roomName, 
-									   Principal principal)
+	public String adminRoomConstructorForm(Model model, 
+										   @RequestParam(value = "name", required = false) String roomName, 
+										   Principal principal)
 	{
 		Collection<User> owners = userService.findAll();
 		model.addAttribute("owners", owners);
-		return roomConstructor(model, roomName, principal);
+		return roomConstructorForm(model, roomName, principal);
 	}
 	
 	private void setAllowedUsers(Room room, Long[] allowedUsersId)
@@ -172,7 +176,8 @@ public class RoomFormController
 	{		
 		if (model.containsAttribute("roomName"))
 		{
-			chatService.deactiveAll((String) model.asMap().get("roomName"));
+			String roomName = (String) model.asMap().get("roomName");
+			notifier.notifyUsersLeaveRoom(chatService.deactiveAll(roomName), roomName);			
 		}
 	}
 	

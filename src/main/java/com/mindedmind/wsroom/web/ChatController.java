@@ -1,6 +1,5 @@
 package com.mindedmind.wsroom.web;
 
-import static com.mindedmind.wsroom.wsevent.DestinationPath.DELETE_MESSAGE_TOPIC_DEST;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -16,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -25,6 +23,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -43,6 +42,7 @@ import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.EntityNotFoundException;
 import com.mindedmind.wsroom.service.impl.SubscriptionException;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
+import com.mindedmind.wsroom.wsevent.EventNotifier;
 
 @Controller
 public class ChatController
@@ -53,17 +53,17 @@ public class ChatController
 	
 	private final RoomService roomService;
 	
-	private final SimpMessagingTemplate messagingTemplate;
+	private final EventNotifier notifier;
 	
 	public ChatController(ChatService chatService, 
 						  UserService userService,
 						  RoomService roomService,
-						  SimpMessagingTemplate messagingTemplate)
+						  EventNotifier notifier)
 	{
 		this.chatService = chatService;
 		this.userService = userService;
 		this.roomService = roomService;
-		this.messagingTemplate = messagingTemplate;
+		this.notifier = notifier;
 	}
 		
 	@MessageMapping("/chat/{room}")
@@ -134,8 +134,8 @@ public class ChatController
 	public void removeRoom(@PathVariable("name") String name)
 	{			
 		Room room = roomService.findByName(name);
-		roomService.delete(room);
-		chatService.deactiveAll(name);
+		roomService.delete(room);		
+		notifier.notifyUsersLeaveRoom(chatService.deactiveAll(name), name);
 	}
 		
 	@GetMapping("/rooms/{name}/image")
@@ -170,8 +170,7 @@ public class ChatController
 	{
 		Collection<RoomDto> dtos = roomService.getSubsribedRooms(principal.getName()).stream().map(room -> {			
 			RoomDto dto = new RoomDto(room);			
-			dto.setActiveUsers(chatService.getActiveUsers(room.getName()));
-			
+			dto.setActiveUsers(chatService.getActiveUsers(room.getName()));			
 			return dto;
 		}).collect(toList());
 		return dtos;
@@ -203,17 +202,30 @@ public class ChatController
 	public void removeUser(@PathVariable("name") String name)
 	{
 		userService.removeUser(name);
-		chatService.deactiveUser(name);
+		notifier.notifyUserLeaveRooms(name, chatService.deactiveUser(name));
 	}
 	
-	@DeleteMapping("/users/{userId}/rooms/{roomId}/messages/{msgId}")
+	@DeleteMapping("/users/{user}/rooms/{room}/messages/{msgId}")
 	@ResponseStatus(HttpStatus.OK)
-	public void removeMessage(@PathVariable("userId") Long userId,
-							  @PathVariable("roomId") String roomId,
+	public void removeMessage(@PathVariable("user") String user,
+							  @PathVariable("room") String room,
 							  @PathVariable("msgId") Long msgId)
 	{
-		chatService.removeMessage(userId , msgId);
-		messagingTemplate.convertAndSend(DELETE_MESSAGE_TOPIC_DEST + roomId, msgId);
+		chatService.removeMessage(user , msgId);
+		ChatMessageDto msg = new ChatMessageDto();
+		msg.setId(msgId);
+		notifier.notifyDeleteMessage(room , msg);
+	}
+	
+	@PutMapping("/users/{user}/rooms/{room}/messages/{msgId}")
+	@ResponseStatus(HttpStatus.OK)
+	public void updateMessage(@PathVariable("user") String user,
+							  @PathVariable("room") String room,
+							  @PathVariable("msgId") Long  msgId,
+							  @RequestBody ChatMessageDto  msgDto)
+	{
+		chatService.updateMessage(user , msgId , msgDto.getText());
+		notifier.notifyUpdateMessage(room , msgDto);
 	}
 	
 	@GetMapping("/users/principal")

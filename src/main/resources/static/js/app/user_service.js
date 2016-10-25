@@ -26,7 +26,11 @@ angular.module('ChatModule')
 				removeMessage : function(userId, roomId, msgId)
 				{
 					return deferResult(function(){return $http['delete']("/users/" + userId + "/rooms/" + roomId + "/messages/" + msgId)})
-				}
+				},
+				updateMessage : function(user, room, msg)
+				{
+					return deferResult(function(){return $http.post("/users/" + user + "/rooms/" + room + "/messages/" + msg.id, msg)})
+				}				
 			}
 
 			function deferResult(asyncCall) 

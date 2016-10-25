@@ -11,9 +11,12 @@ public interface ChatService
 {
 	void saveMessage(Message msg, String roomName);
 	
-	@PreAuthorize("#userId == principal.user.id or hasRole('ROLE_ADMIN')")
-	void removeMessage(Long userId, Long msgId);
+	@PreAuthorize("#user == principal.username or hasRole('ROLE_ADMIN')")
+	void removeMessage(String user, Long msgId);
 
+	@PreAuthorize("#user == principal.username or hasRole('ROLE_ADMIN')")
+	void updateMessage(String user, Long msgId, String txt);
+	
 	Set<String> getActiveUsers(String room);
 	
 	void deactiveUser(String user, String room);
@@ -32,5 +35,11 @@ public interface ChatService
 	
 	void unsubscribe(String user, String room);
 	
-	void deactiveAll(String roomName);
+	/**
+	 * Deactive all users in the given room;  
+	 * 
+	 * @param roomName - the room name
+	 * @return the set of users which were in this room
+	 */
+	Set<String> deactiveAll(String roomName);
 }

@@ -30,6 +30,7 @@ import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
 import com.mindedmind.wsroom.util.ImageUtils;
+import com.mindedmind.wsroom.wsevent.EventNotifier;
 
 @Controller
 @SessionAttributes({"user", "oldName"})
@@ -41,10 +42,15 @@ public class UserFormController
 	
 	private final ChatService chatService;
 	
-	public UserFormController(ChatService chatService, UserService userService)
+	private final EventNotifier notifier;
+	
+	public UserFormController(ChatService chatService, 
+							  UserService userService,
+							  EventNotifier notifier)
 	{
 		this.userService = userService;
 		this.chatService = chatService;
+		this.notifier 	 = notifier;
 	}
 	
 	@GetMapping(value = "/users/registration", params = "form")
@@ -148,7 +154,8 @@ public class UserFormController
 	{
 		if (model != null && model.containsAttribute("oldName"))
 		{
-			chatService.deactiveUser((String) model.asMap().get("oldName"));
+			String userName = (String) model.asMap().get("oldName");
+			notifier.notifyUserLeaveRooms(userName , chatService.deactiveUser(userName));
 		}
 	}
 	

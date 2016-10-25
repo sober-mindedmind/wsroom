@@ -19,10 +19,5 @@ public interface MessageRepository extends JpaRepository<Message, Long>
 	@Transactional
 	@Modifying
 	@Query("delete from Message msg where msg.owner = ?1")
-	void deleteAllMessagesOfUser(User u);
-	
-	@Transactional
-	@Modifying
-	@Query("delete from Message msg where msg.owner.id = ?1 and msg.id = ?2")
-	void deleteUserMessage(Long userId, Long msgId);
+	void deleteAllMessagesOfUser(User u);	
 }
