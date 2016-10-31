@@ -1,8 +1,4 @@
 # wsroom
-Implementation of a web-chat application based on Spring websocket.
+This project is an implementation of a web-chat application based on Spring websocket.
 
-Project is built upon Spring (Spriing Boot, Spring WebSocket, Spring MVC, Spring Security, Spring Data JPA), Hibernate, Thymeleaf, AngularJS
-
-
-
-
+The project is built with help of Spring (Spring Boot, Spring WebSocket, Spring MVC, Spring Security, Spring Data JPA), Hibernate, Thymeleaf, AngularJS

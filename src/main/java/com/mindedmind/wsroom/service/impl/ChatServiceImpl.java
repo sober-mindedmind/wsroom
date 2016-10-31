@@ -115,7 +115,6 @@ public class ChatServiceImpl implements ChatService
 	
 	@Override public void updateMessage(Long id, String txt)
 	{
-	//	messageRepository.findOne(id).setText(txt);
 		messageRepository.updateMessage(id , txt);
 	}
 
@@ -134,13 +133,13 @@ public class ChatServiceImpl implements ChatService
 		if (ban)
 		{						
 			room.getBannedUsers().add(user);
+			room.getSubscribedUsers().remove(user);
+			deactiveUser(name, roomName);
 		}
 		else
 		{
 			room.getBannedUsers().remove(user);
-		}
-		room.getSubscribedUsers().remove(user);
-		deactiveUser(name, roomName);
+		}	
 	}
 
 	@Override public boolean isActive(String userName, String room)
@@ -148,18 +147,4 @@ public class ChatServiceImpl implements ChatService
 		return roomsOnActiveUsers.getOrDefault(room , emptySet()).contains(userName);
 	}
 
-/*	private Message findMessage(Long id)
-	{
-		Message msg = messageRepository.findOne(id);
-		if (msg == null)
-		{
-			throw new EntityNotFoundException(String.format("Message with the given id '%s' does not exist", id));
-		}
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !auth.getName().equals(msg.getOwner().getName()))
-		{
-			throw new AccessDeniedException("Can't obtaine access to message");
-		}		
-		return msg;
-	}*/
 }
