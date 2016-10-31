@@ -27,6 +27,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -42,6 +43,7 @@ import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
+import com.mindedmind.wsroom.wsevent.EventNotifier;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(value = ChatController.class, secure = false)
@@ -63,6 +65,9 @@ public class ChatControllerTest
 	
 	@MockBean
 	private UserService userService;
+	
+	@MockBean
+	private EventNotifier notifier;
 	
 	@Autowired
     private ChatController controller;
@@ -94,7 +99,7 @@ public class ChatControllerTest
 		headers.setSessionId("0");
 		User user = new User();
 		user.setName("User");
-		UsernamePasswordAuthenticationToken authToken = Mockito.mock(UsernamePasswordAuthenticationToken.class);
+		Authentication authToken = Mockito.mock(UsernamePasswordAuthenticationToken.class);
 		when(authToken.getPrincipal()).thenReturn(new UserDetailsImpl(user));
 		
 		headers.setUser(authToken);
@@ -104,13 +109,13 @@ public class ChatControllerTest
 		byte[] payload = new ObjectMapper().writeValueAsBytes(chatMessage);
 		
 		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
-
+		when(chatService.isActive(Mockito.any(String.class) , Mockito.any(String.class))).thenReturn(true);
 		this.annotationMethodHandler.handleMessage(message);
 				
 		ArgumentCaptor<com.mindedmind.wsroom.domain.Message> messArgumentCaptor 
 			= ArgumentCaptor.forClass(com.mindedmind.wsroom.domain.Message.class);
 		
-		Mockito.verify(chatService).saveMessage(messArgumentCaptor.capture(), Mockito.eq("Room1"));
+		Mockito.verify(chatService, times(1)).saveMessage(messArgumentCaptor.capture(), Mockito.eq("Room1"));
 				
 		assertEquals(messArgumentCaptor.getValue().getText(), chatMessage.getText());		
 	}
@@ -119,8 +124,10 @@ public class ChatControllerTest
 	public void listSubscribedRooms_UsersRoomsAreFetched_True() throws Exception
 	{
 		Room r1 = new Room();
+		r1.setOwner(new User());
 		r1.setName("R1");
 		Room r2 = new Room();
+		r2.setOwner(new User());
 		r2.setName("R2");
 		when(roomService.getSubsribedRooms("user")).thenReturn(new HashSet<>(Arrays.asList(r1, r2)));	
 		when(chatService.getActiveUsers(Mockito.any(String.class))).thenReturn(null);		
@@ -134,9 +141,11 @@ public class ChatControllerTest
 	public void listAllRooms_UserObtainsAllRooms_ListNotEmpty() throws Exception
 	{
 		Room r1 = new Room();
+		r1.setOwner(new User());
 		r1.setName("R1");
 		Room r2 = new Room();
-		r2.setName("R2");				
+		r2.setName("R2");		
+		r2.setOwner(new User());
 		when(roomService.getAllRooms("user")).thenReturn(new HashSet<>(Arrays.asList(r1, r2)));
 		mvc.perform(MockMvcRequestBuilders.get("/rooms").principal(() -> "user"))
 			.andExpect(MockMvcResultMatchers.content()

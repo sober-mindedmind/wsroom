@@ -42,5 +42,5 @@ public interface RoomService
 	
 	Set<Room> getSubsribedRooms(String user);
 	
-	byte[] loadRoomImage(String name);
+	byte[] loadRoomImage(String name);	
 }

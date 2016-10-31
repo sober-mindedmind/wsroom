@@ -11,6 +11,7 @@
 <script type="text/javascript" src="/js/app/chat_service.js"></script>
 <script type="text/javascript" src="/js/app/user_service.js"></script>
 <script type="text/javascript" src="/js/app/room_service.js"></script>
+<script type="text/javascript" src="/js/app/complain_service.js"></script>
 <script type="text/javascript" src="/js/app/admin_controller.js"></script>
 <script type="text/javascript" src="/js/app/wsconnector.js"></script>
 <script type="text/javascript" src="/js/stomp.js"></script>
@@ -20,7 +21,8 @@
 	<div ng-controller="AdminController as ct" class="container">
     	<ul class="nav nav-tabs">
 		    <li class="active"><a data-toggle="tab" href="#usersTab">Users</a></li>
-		    <li><a data-toggle="tab" href="#roomsTab">Rooms</a></li>		    
+		    <li><a data-toggle="tab" href="#roomsTab">Rooms</a></li>		   
+		    <li><a data-toggle="tab" href="#complaintsTab">Complaints</a></li>		    
 		  </ul>
 
 		<div class="tab-content">
@@ -49,6 +51,28 @@
 								  class="glyphicon glyphicon-remove"> 
 						 	</span>
 							<a ng-href="/admin/rooms?form&amp;name={{room.name}}">{{room.name}}</a>
+						</li>
+					</ul>
+				</p>
+			</div>			
+			<div id="complaintsTab" class="tab-pane fade">
+				<p>
+					<label for="complaints">Complaints in the system:</label>
+					<ul id = "complaints" style="list-style-type: none" ng-repeat="c in complaints">
+						<li>
+						<h5>Offender: {{c.offensiveMessage.owner}}</h5>
+						<h5>Offensive message: {{c.offensiveMessage.text}}</h5>
+						<h4>Reason:  {{c.reason}}</h4>
+						<span ng-click="ct.removeComplaint(c)" 
+								  class="glyphicon glyphicon-remove"> 
+					 	</span>
+					 	
+						<!-- 
+							<span ng-click="ct.removeRoom(room)" 
+								  class="glyphicon glyphicon-remove"> 
+						 	</span>
+							<a ng-href="/admin/rooms?form&amp;name={{room.name}}">{{c.reason}}</a>
+						 -->
 						</li>
 					</ul>
 				</p>

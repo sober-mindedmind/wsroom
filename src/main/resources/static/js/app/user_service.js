@@ -23,14 +23,14 @@ angular.module('ChatModule')
 				{
 					return deferResult(function(){return $http.get("/users/principal")})
 				},
-				removeMessage : function(userId, roomId, msgId)
+				removeMessage : function(msg)
 				{
-					return deferResult(function(){return $http['delete']("/users/" + userId + "/rooms/" + roomId + "/messages/" + msgId)})
+					return deferResult(function(){return $http['delete']("/messages/" + msg.id + '?room=' + msg.room)})
 				},
-				updateMessage : function(user, room, msg)
+				updateMessage : function(msg)
 				{
-					return deferResult(function(){return $http.post("/users/" + user + "/rooms/" + room + "/messages/" + msg.id, msg)})
-				}				
+					return deferResult(function(){return $http.put("/messages/" + msg.id, msg)})
+				}			
 			}
 
 			function deferResult(asyncCall) 

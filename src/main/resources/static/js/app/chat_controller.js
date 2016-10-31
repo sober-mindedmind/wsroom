@@ -3,8 +3,8 @@
  */
 
 angular.module('ChatModule').controller('ChatController', 
-		['$scope', 'ChatService', 'RoomService', 'UserService',
-		 function($scope, ChatService, RoomService, UserService) 
+		['$scope', 'ChatService', 'RoomService', 'UserService', 'ComplainService',
+		 function($scope, ChatService, RoomService, UserService, ComplainService) 
 		 {
 			ChatService.connect(window.location.hostname)
 			UserService.getPrincipal().then(function(principal){$scope.principal = principal})
@@ -24,12 +24,19 @@ angular.module('ChatModule').controller('ChatController',
 			
 			/* all rooms registered in the application */
 			$scope.allRooms = {};
-			
+									
 			$scope.notification = ''
+			$scope.complain = {}
+				
 			var self = this
 			var typedChars = 0
 			var editableMessage = null
 			var edit = false
+						
+			this.complainOnMessage = function()
+			{
+				ComplainService.complainOnMessage($scope.complain.message.id, $scope.complain.reason)
+			}
 			
 			/** Fetches all rooms created in the application */
 			this.fetchAllRooms = function()
@@ -206,7 +213,7 @@ angular.module('ChatModule').controller('ChatController',
 			            		{
 			            			self.subscribe(room.name)
 			            			setTimeout(function(){$('#' + room.name).collapse('hide')}, 500);
-			            		})
+			            		})			            		
 		            		}
 			            },
 			            function(errResponse){
@@ -270,12 +277,29 @@ angular.module('ChatModule').controller('ChatController',
 			this.removeMessage = function(message)
 			{
 				/* TODO replace room name on room id*/
-				UserService.removeMessage(message.owner, $scope.currentRoom.obj.name, message.id)
+				message.room = $scope.currentRoom.obj.name
+				UserService.removeMessage(message)
 			}			
 
 			this.updateMessage = function(message)
 			{
-				UserService.updateMessage(message.owner, $scope.currentRoom.obj.name, message)
+				message.room = $scope.currentRoom.obj.name
+				UserService.updateMessage(message)
+			}
+			
+			this.banUser = function(user)
+			{
+				RoomService.banUser($scope.currentRoom.obj.name, {name : user}, true).then
+				(
+						function()
+						{
+							Util.removeElement($scope.currentRoom.users, user)
+						},
+						function()
+						{
+							console.log("Can't ban user")
+						}
+				)
 			}
 			
 			this.fetchSubscribedRooms(true);

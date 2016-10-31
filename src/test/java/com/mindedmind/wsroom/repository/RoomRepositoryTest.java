@@ -64,8 +64,12 @@ public class RoomRepositoryTest
 	@Test
 	public void allRoomsVisibleForUser_UserSeesOnlyAllowedRooms_True()
 	{		
+		Room room1 = new Room();
+		room1.setName("Room3");
+		room1.getBannedUsers().add(userRepository.findUserByName("User1"));
 		Room room2 = new Room(); 
 		room2.setName("Room2");
+		roomRepository.save(room1);
 		roomRepository.save(room2);
 		
 		Collection<Room> rooms = roomRepository.allRoomsVisibleForUser("User1");

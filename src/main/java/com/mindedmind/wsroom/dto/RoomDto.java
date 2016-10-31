@@ -1,6 +1,5 @@
 package com.mindedmind.wsroom.dto;
 
-import java.util.Collection;
 import java.util.Set;
 
 import com.mindedmind.wsroom.domain.Room;
@@ -26,6 +25,8 @@ public class RoomDto
 	
 	private boolean hasPassword;
 	
+	private Long ownerId;
+	
 	public RoomDto()
 	{
 	}
@@ -41,7 +42,8 @@ public class RoomDto
 		setName(room.getName());
 		setDescription(room.getDescription());
 		setActive(room.getActive());
-		setHasPassword(room.getPassword() != null);			
+		setHasPassword(room.getPassword() != null);
+		setOwnerId(room.getOwner().getId());
 	}
 	
 	public String getName()
@@ -137,5 +139,15 @@ public class RoomDto
 	public void setPreview(Set<ChatMessageDto> preview)
 	{
 		this.preview = preview;
+	}
+
+	public Long getOwnerId()
+	{
+		return ownerId;
+	}
+
+	public void setOwnerId(Long onwerId)
+	{
+		this.ownerId = onwerId;
 	}
 }

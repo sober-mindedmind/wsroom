@@ -8,6 +8,9 @@ public class UserDto
 	
 	private String name;
 	
+	public UserDto()
+	{}
+	
 	public UserDto(User user)
 	{
 		this(user.getId(), user.getName());		

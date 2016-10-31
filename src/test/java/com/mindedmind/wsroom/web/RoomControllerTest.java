@@ -27,6 +27,7 @@ import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
+import com.mindedmind.wsroom.wsevent.EventNotifier;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(value = RoomFormController.class, secure = false)
@@ -43,6 +44,9 @@ public class RoomControllerTest
 	
 	@MockBean
 	private ChatService chatService;
+	
+	@MockBean
+	private EventNotifier notifier;
 	
 	@Test
 	public void createRoom_IsRoomSuccessfullySaved_True() throws Exception

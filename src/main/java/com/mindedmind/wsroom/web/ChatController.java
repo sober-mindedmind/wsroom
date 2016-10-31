@@ -2,7 +2,6 @@ package com.mindedmind.wsroom.web;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import java.security.Principal;
@@ -19,12 +18,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -32,15 +30,12 @@ import com.mindedmind.wsroom.domain.Message;
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.dto.ChatMessageDto;
-import com.mindedmind.wsroom.dto.ErrorDto;
 import com.mindedmind.wsroom.dto.RoomDto;
 import com.mindedmind.wsroom.dto.TypingDto;
 import com.mindedmind.wsroom.dto.UserDto;
 import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
-import com.mindedmind.wsroom.service.impl.EntityNotFoundException;
-import com.mindedmind.wsroom.service.impl.SubscriptionException;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
 import com.mindedmind.wsroom.wsevent.EventNotifier;
 
@@ -52,9 +47,9 @@ public class ChatController
 	private final UserService userService;
 	
 	private final RoomService roomService;
-	
+		
 	private final EventNotifier notifier;
-	
+			
 	public ChatController(ChatService chatService, 
 						  UserService userService,
 						  RoomService roomService,
@@ -63,30 +58,35 @@ public class ChatController
 		this.chatService = chatService;
 		this.userService = userService;
 		this.roomService = roomService;
-		this.notifier = notifier;
+		this.notifier = notifier;		
 	}
 		
 	@MessageMapping("/chat/{room}")
-	public ChatMessageDto handleMessage(@Payload ChatMessageDto messageDto, 
-									 	@DestinationVariable("room") String roomName,
-									 	Authentication auth)
+	public void handleMessage(@Payload ChatMessageDto messageDto, 
+							  @DestinationVariable("room") String roomName,
+							  Authentication auth)
 	{		
-		User currentUser = ((UserDetailsImpl)auth.getPrincipal()).getUser();
-		Date currentDate = new Date();				
-		Message msg = new Message();
-		msg.setText(messageDto.getText());
-		msg.setTime(currentDate);
-		msg.setOwner(currentUser);
-		chatService.saveMessage(msg, roomName);
-				
-		messageDto.setId(msg.getId());		
-		messageDto.setServerTime(currentDate.toString());		
-		messageDto.setOwner(currentUser.getName());
-		messageDto.setOwnerId(currentUser.getId());
-		messageDto.setRoomId(msg.getRoom().getId());
-		
-		/* send to /topic/chat/{room} */
-		return messageDto;
+		/*
+		 * if user is active (present) in the given room then allow to redirect his message to other users in the room
+		 */
+		if (chatService.isActive(auth.getName() , roomName))
+		{
+			User currentUser = ((UserDetailsImpl)auth.getPrincipal()).getUser();
+			Date currentDate = new Date();				
+			Message msg = new Message();
+			msg.setText(messageDto.getText());
+			msg.setTime(currentDate);
+			msg.setOwner(currentUser);
+			chatService.saveMessage(msg, roomName);
+					
+			messageDto.setId(msg.getId());
+			messageDto.setServerTime(currentDate.toString());
+			messageDto.setOwner(currentUser.getName());
+			messageDto.setOwnerId(currentUser.getId());
+			
+			/* send to /topic/chat/{room} */
+			notifier.notifySendMessage(messageDto , roomName);
+		}		
 	}
 		
 	@MessageMapping("/typing/{room}")
@@ -134,7 +134,7 @@ public class ChatController
 	public void removeRoom(@PathVariable("name") String name)
 	{			
 		Room room = roomService.findByName(name);
-		roomService.delete(room);		
+		roomService.delete(room);
 		notifier.notifyUsersLeaveRoom(chatService.deactiveAll(name), name);
 	}
 		
@@ -204,37 +204,24 @@ public class ChatController
 		userService.removeUser(name);
 		notifier.notifyUserLeaveRooms(name, chatService.deactiveUser(name));
 	}
-	
-	@DeleteMapping("/users/{user}/rooms/{room}/messages/{msgId}")
-	@ResponseStatus(HttpStatus.OK)
-	public void removeMessage(@PathVariable("user") String user,
-							  @PathVariable("room") String room,
-							  @PathVariable("msgId") Long msgId)
-	{
-		chatService.removeMessage(user , msgId);
-		ChatMessageDto msg = new ChatMessageDto();
-		msg.setId(msgId);
-		notifier.notifyDeleteMessage(room , msg);
-	}
-	
-	@PutMapping("/users/{user}/rooms/{room}/messages/{msgId}")
-	@ResponseStatus(HttpStatus.OK)
-	public void updateMessage(@PathVariable("user") String user,
-							  @PathVariable("room") String room,
-							  @PathVariable("msgId") Long  msgId,
-							  @RequestBody ChatMessageDto  msgDto)
-	{
-		chatService.updateMessage(user , msgId , msgDto.getText());
-		notifier.notifyUpdateMessage(room , msgDto);
-	}
-	
+		
 	@GetMapping("/users/principal")
 	@ResponseBody
 	public UserDto getPrincipal(@AuthenticationPrincipal(expression = "user") User user)
 	{
 		return new UserDto(user);
 	}
-		
+	
+	@PostMapping(value = "/rooms/{roomName}/bannedUsers", params = "ban")
+	@ResponseStatus(HttpStatus.CREATED)	
+	public void banUserInRoom(@PathVariable("roomName") String room, 
+							  @RequestBody UserDto user,
+							  @RequestParam("ban") boolean ban)
+	{
+		chatService.banUser(user.getName() , room , ban);
+		notifier.notifyUserLeaveRoom(user.getName() , room);
+	}
+	
 	@GetMapping("/rooms/myrooms")
 	@ResponseBody
 	public Set<String> listRoomsWherePrincipalIsOwner(Principal principal)  
@@ -243,13 +230,5 @@ public class ChatController
 				.stream()
 				.map(r -> r.getName())
 				.collect(toSet());
-	}
-
-	@ExceptionHandler({SubscriptionException.class, EntityNotFoundException.class})
-	@ResponseStatus(BAD_REQUEST)
-	@ResponseBody
-	public ErrorDto onException(Exception e)
-	{		
-		return new ErrorDto(e.getMessage());
 	}
 }

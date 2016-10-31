@@ -14,6 +14,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
+import com.mindedmind.wsroom.security.RoomPermissionEvaluator;
 import com.mindedmind.wsroom.service.ChatService;
 
 @Component
@@ -21,15 +22,20 @@ public class StompEventListener
 {	
 	private static Logger LOGGER = LoggerFactory.getLogger(StompEventListener.class);
 	
-	private ChatService chatService;
+	private final ChatService chatService;
 	
-	private EventNotifier notifier;
+	private final EventNotifier notifier;
+	
+	private final RoomPermissionEvaluator roomPermissionEval; 
 	
 	@Autowired
-	public StompEventListener(EventNotifier notifier, ChatService chatService)
+	public StompEventListener(EventNotifier notifier, 
+							  ChatService chatService, 
+							  RoomPermissionEvaluator roomPermissionEval)
 	{		
 		this.notifier = notifier;
 		this.chatService = chatService;
+		this.roomPermissionEval = roomPermissionEval;
 	}
 	
 	@EventListener
@@ -39,10 +45,13 @@ public class StompEventListener
 		if (extractPath(header.getDestination()).equals(CHAT_TOPIC))
 		{		
 			String roomName = extractRoom(header.getDestination());			
-			chatService.activeUser(header.getUser().getName() , roomName);
-			notifier.notifyUserIsActive(roomName , header.getUser().getName());
+			if (!roomPermissionEval.isBanned(subEvent.getUser().getName(), roomName))
+			{
+				chatService.activeUser(header.getUser().getName() , roomName);
+				notifier.notifyUserIsActive(roomName , header.getUser().getName());
+				LOGGER.debug("User '{}' has been subscribed", header.getUser().getName());				
+			}
 		}
-		LOGGER.debug("User '{}' has been subscribed", header.getUser().getName());
 	}
 	
 	@EventListener

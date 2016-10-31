@@ -5,6 +5,9 @@ public class TypingDto
 	private String userName;
 	private String roomName;
 	
+	public TypingDto() 
+	{}
+	
 	public TypingDto(String userName, String roomName)
 	{	
 		this.userName = userName;

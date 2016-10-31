@@ -9,7 +9,7 @@ angular.module('ChatModule')
 			{
 				this.connection = new WSConnection('ws://' + host + ':8080/room')
 			},
-			connection : null				
+			connection : null
 		};
 		return service; 
 	}]);

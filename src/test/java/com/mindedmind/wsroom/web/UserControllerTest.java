@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.UserService;
+import com.mindedmind.wsroom.wsevent.EventNotifier;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(value = UserFormController.class, secure = false)
@@ -32,6 +33,9 @@ public class UserControllerTest
 	
 	@MockBean
 	private ChatService chatService;
+	
+	@MockBean
+	private EventNotifier notifier;
 	
 	@Test 
 	public void register_ModelContainsUserAttribute_True() throws Exception

@@ -7,6 +7,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import com.mindedmind.wsroom.dto.ChatMessageDto;
+import com.mindedmind.wsroom.dto.TypingDto;
 import com.mindedmind.wsroom.dto.UserDto;
 
 @Component
@@ -60,5 +61,15 @@ public class EventNotifier
 	public void notifyUserIsActive(String room, String user) 
 	{
 		messagingTemplate.convertAndSend(USER_JOIN_TOPIC + room, new UserDto(user));		
+	}
+	
+	public void notifySendMessage(ChatMessageDto msg, String room)
+	{
+		messagingTemplate.convertAndSend("/topic/chat/" + room, msg);
+	}
+	
+	public void notifyTyping(String userName, String room)
+	{
+		messagingTemplate.convertAndSend("/topic/typing/" + room, new TypingDto(userName , room));
 	}
 }

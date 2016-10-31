@@ -8,16 +8,20 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import com.mindedmind.wsroom.domain.Message;
 
 public interface ChatService
-{
+{	
+	Message findMessage(Long id);
+	
 	void saveMessage(Message msg, String roomName);
 	
-	@PreAuthorize("#user == principal.username or hasRole('ROLE_ADMIN')")
-	void removeMessage(String user, Long msgId);
+	@PreAuthorize("@messagePermissionEvaluator.canModify(#id, authentication)")
+	void deleteMessage(Long id);
 
-	@PreAuthorize("#user == principal.username or hasRole('ROLE_ADMIN')")
-	void updateMessage(String user, Long msgId, String txt);
+	@PreAuthorize("@messagePermissionEvaluator.canModify(#id, authentication)")
+	void updateMessage(Long id, String txt);
 	
 	Set<String> getActiveUsers(String room);
+	
+	boolean isActive(String userName, String room);
 	
 	void deactiveUser(String user, String room);
 	
@@ -42,4 +46,8 @@ public interface ChatService
 	 * @return the set of users which were in this room
 	 */
 	Set<String> deactiveAll(String roomName);
+	
+	@PreAuthorize("@roomPermissionEvaluator.isRoomOwner(authentication, #roomName)")
+	void banUser(String name, String roomName, boolean ban);
+	
 }

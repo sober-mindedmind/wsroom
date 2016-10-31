@@ -5,10 +5,20 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "messages")
+@NamedEntityGraphs(
+		@NamedEntityGraph(
+				name = "Message.allEager",
+				attributeNodes = {@NamedAttributeNode(value = "owner"), 
+								  @NamedAttributeNode(value = "room", subgraph = "room")},
+				subgraphs = @NamedSubgraph(name = "room", attributeNodes = @NamedAttributeNode("owner"))))
 public class Message extends AbstractEntity
 {
 	private String text;

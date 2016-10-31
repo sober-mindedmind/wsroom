@@ -14,7 +14,9 @@ public class ChatMessageDto
 	
 	private Long ownerId;
 	
-	private Long roomId;
+	private String room;
+	
+	/*private Long roomId;*/
 
 	public ChatMessageDto()
 	{}
@@ -26,10 +28,10 @@ public class ChatMessageDto
 		setServerTime(message.getTime().toString());
 		setOwner(message.getOwner().getName());
 		setOwnerId(message.getOwner().getId());
-		setRoomId(message.getRoom().getId());
+		setRoom(message.getRoom().getName());
+		/*setRoomId(message.getRoom().getId());*/
 	}
-	
-	
+		
 	public String getServerTime()
 	{
 		return serverTime;
@@ -75,24 +77,33 @@ public class ChatMessageDto
 		return ownerId;
 	}
 
-	public Long getRoomId()
+	/*public Long getRoomId()
 	{
 		return roomId;
 	}
-
+*/
 	public void setOwnerId(Long ownerId)
 	{
 		this.ownerId = ownerId;
 	}
 
-	public void setRoomId(Long roomId)
+	/*public void setRoomId(Long roomId)
 	{
 		this.roomId = roomId;
-	}
+	}*/
 
 	@Override public String toString()
 	{
-		return "ChatMessageDto [id=" + id + ", text=" + text + ", serverTime=" + serverTime + ", owner=" + owner
-				+ ", ownerId=" + ownerId + ", roomId=" + roomId + "]";
-	}	
+		return "ChatMessageDto [id=" + id + ", text=" + text + ", serverTime=" + serverTime + ", owner=" + owner + "]";
+	}
+
+	public String getRoom()
+	{
+		return null;
+	}
+
+	public void setRoom(String room)
+	{
+		this.room = room;
+	}		
 }

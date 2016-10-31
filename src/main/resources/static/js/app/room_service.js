@@ -24,6 +24,12 @@ angular.module('ChatModule')
 				{
 					return deferResult(function() {return $http['delete']("/rooms/" + roomName)})
 				}
+				,
+				banUser : function(roomName, user, ban)
+				{
+					console.log(user)
+					return deferResult(function() {return $http.post("/rooms/" + roomName + "/bannedUsers?ban=" + ban, user)})
+				}
 			}
 			
 			function deferResult(asyncCall) 

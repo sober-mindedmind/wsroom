@@ -1,6 +1,7 @@
 package com.wsroom.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -15,7 +16,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.mindedmind.wsroom.domain.Room;
+import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.repository.MessageRepository;
+import com.mindedmind.wsroom.repository.RoomRepository;
 import com.mindedmind.wsroom.repository.UserRepository;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.impl.ChatServiceImpl;
@@ -28,9 +31,6 @@ public class ChatServiceImplTest
 	private ChatServiceImpl chatServiceImpl;
 
 	@Mock
-	private RoomService roomService;
-
-	@Mock
 	private MessageRepository messageRepository;
 
 	@Mock
@@ -39,8 +39,11 @@ public class ChatServiceImplTest
 	@Mock
 	private SimpMessagingTemplate stompTemplate;
 	
+	@Mock
+	private RoomRepository roomRepository;
+	
 	@Test
-	public void activeUser_IsUserActiveted_True()
+	public void activeUser_UserIsActiveted_True()
 	{		
 		chatServiceImpl.activeUser("user", "room");
 		assertEquals(new ArrayList<>(chatServiceImpl.getActiveUsers("room")), Arrays.asList("user"));
@@ -49,7 +52,10 @@ public class ChatServiceImplTest
 	@Test
 	public void unsubscribe_UserIsUnsubscribed_True()
 	{		
-		when(roomService.findByName("room1")).thenReturn(new Room());		
+		User user = new User();
+		user.setName("user");
+		when(userRepository.findUserByName("user")).thenReturn(user);
+		when(roomRepository.findByName("room1")).thenReturn(new Room());		
 		chatServiceImpl.activeUser("user" , "room1");		
 		chatServiceImpl.unsubscribe("user" , "room1");
 		assertTrue(chatServiceImpl.getActiveUsers("room1").isEmpty());
@@ -79,7 +85,15 @@ public class ChatServiceImplTest
 		Room room = new Room();
 		room.setName("room1");
 		room.setPassword("1");		
-		when(roomService.findByName("room1")).thenReturn(room);		
+		when(roomRepository.findByName("room1")).thenReturn(room);		
 		chatServiceImpl.subscribe("user1", "room1", "2");
+	}
+	
+	@Test
+	public void isActive_UserIsAbsent_True()
+	{		
+		assertFalse(chatServiceImpl.isActive("user" , "room"));
+		chatServiceImpl.activeUser("user1" , "room");
+		assertFalse(chatServiceImpl.isActive("user" , "room"));
 	}
 }

@@ -15,7 +15,7 @@ public interface UserService
 	@PreAuthorize("#name == principal.username or hasRole('ROLE_ADMIN')")
 	User findUser(String name);
 	
-	@PostAuthorize("returnObject.name == principal.username or hasRole('ROLE_ADMIN')")
+	@PostAuthorize("#id == principal.user.id or hasRole('ROLE_ADMIN')")
 	User findUser(Long id);
 	
 	Set<User> findUsers(Long... ids);
@@ -24,8 +24,9 @@ public interface UserService
 			
 	byte[] loadUserImage(String name);
 	
+	@PostAuthorize("#id == principal.user.id or hasRole('ROLE_ADMIN')")
 	void removeUser(Long id);
 	
-	@PreAuthorize("#name == principal.user.name or hasRole('ROLE_ADMIN')")
+	@PreAuthorize("#name == principal.username or hasRole('ROLE_ADMIN')")
 	void removeUser(String name);
 }

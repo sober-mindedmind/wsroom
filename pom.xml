@@ -3,7 +3,7 @@
   <groupId>com.mindedmind</groupId>
   <artifactId>wsroom</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-
+  <packaging>war</packaging>
 
 	<properties>
 		<hibernate.version>5.1.0.Final</hibernate.version>
@@ -147,7 +147,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>            
+            </plugin>   
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

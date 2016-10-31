@@ -1,5 +1,8 @@
 package com.mindedmind.wsroom.service.impl;
 
+import static com.mindedmind.wsroom.util.EntityUtils.notNull;
+import static java.util.Collections.emptySet;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,35 +19,35 @@ import com.mindedmind.wsroom.domain.Message;
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.repository.MessageRepository;
+import com.mindedmind.wsroom.repository.RoomRepository;
 import com.mindedmind.wsroom.repository.UserRepository;
 import com.mindedmind.wsroom.service.ChatService;
-import com.mindedmind.wsroom.service.RoomService;
 
 @Service
 public class ChatServiceImpl implements ChatService
 {
 	private final ConcurrentMap<String, Set<String>> roomsOnActiveUsers = new ConcurrentHashMap<>();
 	
-	private final RoomService roomService;
+	private final RoomRepository roomRepository;
 	
 	private final MessageRepository messageRepository;
 	
 	private final UserRepository userRepository;
-	
+		
 	@Autowired
-	public ChatServiceImpl(RoomService roomService, 
+	public ChatServiceImpl(RoomRepository roomRepository, 
 						   MessageRepository messageRepository,
 						   UserRepository userRepository)
 	{
-		this.roomService	   = roomService;
-		this.messageRepository = messageRepository;
-		this.userRepository    = userRepository;
+		this.roomRepository	     = roomRepository;
+		this.messageRepository   = messageRepository;
+		this.userRepository      = userRepository;
 	}
 
 	@Transactional
 	@Override public void saveMessage(Message msg, String roomName)
 	{
-		msg.setRoom(roomService.findByName(roomName));
+		msg.setRoom(roomRepository.findByName(roomName));
 		messageRepository.save(msg);
 	}
 
@@ -57,18 +60,14 @@ public class ChatServiceImpl implements ChatService
 	@Override public void unsubscribe(String userName, String room)
 	{		
 		User user = userRepository.findUserByName(userName);	
-		roomService.findByName(room).getSubscribedUsers().remove(user);
-		deactiveUser(userName);
+		roomRepository.findByName(room).getSubscribedUsers().remove(user);
+		deactiveUser(userName, room);
 	}
 
 	@Override public void deactiveUser(String user, String room)
 	{
 		assert roomsOnActiveUsers.containsKey(room);
-		Set<String> users = roomsOnActiveUsers.get(room);
-		if (users != null)
-		{
-			users.remove(user);
-		}		
+		roomsOnActiveUsers.getOrDefault(room , emptySet()).remove(user);
 	}
 
 	@Override public void activeUser(String user, String room)
@@ -92,7 +91,7 @@ public class ChatServiceImpl implements ChatService
 	@Transactional
 	@Override public void subscribe(String userName, String roomName, String password)
 	{
-		Room room = roomService.findByName(roomName);
+		Room room = roomRepository.findByName(roomName);
 		
 		/* verifying password */
 		if (room.getPassword() != null && !room.getPassword().equals(password))
@@ -108,20 +107,59 @@ public class ChatServiceImpl implements ChatService
 	{
 		return roomsOnActiveUsers.remove(roomName);		
 	}
-	
-	@Override public void removeMessage(String user, Long msgId)
+		
+	@Override public void deleteMessage(Long id)
 	{
-		messageRepository.delete(msgId);	
+		messageRepository.delete(id);
+	}
+	
+	@Override public void updateMessage(Long id, String txt)
+	{
+	//	messageRepository.findOne(id).setText(txt);
+		messageRepository.updateMessage(id , txt);
 	}
 
-	@Transactional
-	@Override public void updateMessage(String user, Long msgId, String txt)
+	@Override public Message findMessage(Long id)
 	{
-		Message msg = messageRepository.findOne(msgId);
+		return messageRepository.findMessage(id);
+	}
+	
+	@Transactional
+	@Override public void banUser(String name, String roomName, boolean ban)
+	{
+		Room room = roomRepository.findByName(roomName);
+		notNull(room , "There is no room with the name like '%s'", roomName);
+		User user = userRepository.findUserByName(name);
+		notNull(user , "There is no user with the name like '%s'", name);		
+		if (ban)
+		{						
+			room.getBannedUsers().add(user);
+		}
+		else
+		{
+			room.getBannedUsers().remove(user);
+		}
+		room.getSubscribedUsers().remove(user);
+		deactiveUser(name, roomName);
+	}
+
+	@Override public boolean isActive(String userName, String room)
+	{
+		return roomsOnActiveUsers.getOrDefault(room , emptySet()).contains(userName);
+	}
+
+/*	private Message findMessage(Long id)
+	{
+		Message msg = messageRepository.findOne(id);
 		if (msg == null)
 		{
-			throw new EntityNotFoundException(String.format("Message with the given id '%s' does not exist", msgId));
+			throw new EntityNotFoundException(String.format("Message with the given id '%s' does not exist", id));
 		}
-		msg.setText(txt);
-	}
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.getName().equals(msg.getOwner().getName()))
+		{
+			throw new AccessDeniedException("Can't obtaine access to message");
+		}		
+		return msg;
+	}*/
 }

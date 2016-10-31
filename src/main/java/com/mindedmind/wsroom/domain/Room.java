@@ -25,7 +25,7 @@ import javax.validation.constraints.Size;
  * room. Owner can specify password for this room therefore making this room private. If password was not specified then
  * room is public, hence any user can enter such room. Also each room can have set of allowed users, if set is non empty
  * then only the users which were specified in this set allow to access this room, otherwise, if list is empty
- * (or {@code null}) and no password was specified then room is considered as public. 
+ * (or {@code null}) and no password was specified then room is considered to be public. 
  */
 @Entity
 @Table(name = "rooms")
@@ -53,10 +53,14 @@ public class Room extends AbstractEntity
 	 */
 	@ManyToMany
 	@JoinTable(name = "private_users_rooms")	
-	private Set<User> allowedUsers 	 = new HashSet<>();
+	private Set<User> allowedUsers 	 		 = new HashSet<>();
 	
 	@ManyToMany
 	private Collection<User> subscribedUsers = new HashSet<>();
+	
+	@ManyToMany
+	@JoinTable(name = "banned_users")
+	private Collection<User> bannedUsers 	 = new HashSet<>();
 	
 	private Boolean active = Boolean.TRUE; 
 	
@@ -180,5 +184,15 @@ public class Room extends AbstractEntity
 				&& Objects.equals(getSubscribedUsers(), other.getSubscribedUsers())
 				&& Objects.equals(getAllowedUsers(), other.getAllowedUsers())
 				&& Objects.equals(getPhoto(), other.getPhoto());
+	}
+
+	public Collection<User> getBannedUsers()
+	{
+		return bannedUsers;
+	}
+
+	public void setBannedUser(Collection<User> bannedUser)
+	{
+		this.bannedUsers = bannedUser;
 	}
 }

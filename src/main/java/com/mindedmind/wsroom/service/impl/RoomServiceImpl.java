@@ -17,7 +17,6 @@ import com.mindedmind.wsroom.util.ImageUtils;
 @Transactional
 public class RoomServiceImpl implements RoomService
 {
-
 	private RoomRepository roomRepository;
 		
 	private MessageRepository messageRepository;

@@ -14,6 +14,7 @@
 <script type="text/javascript" src="js/app/user_service.js"></script>
 <script type="text/javascript" src="js/app/room_service.js"></script>
 <script type="text/javascript" src="js/app/chat_service.js"></script> 
+<script type="text/javascript" src="js/app/complain_service.js"></script>
 <script type="text/javascript" src="js/app/chat_controller.js"></script>
 <script type="text/javascript" src="js/jquery-3.1.0.min.js" ></script>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
@@ -82,7 +83,7 @@
 									<h4 class="oneline" >{{room.name}} ({{room.usersCount}}) {{room.description}}</h4>							
 									<span ng-show="room.hasPassword" class="oneline glyphicon glyphicon-lock"/>									
 									<div ng-show="room.checked &amp;&amp; room.hasPassword">							
-										<h5><small>This room is under password. Type password in order to connect</small></h5>
+										<h5><small>This room is under password. Type the password in order to connect</small></h5>
 										<input class="form-control" type="password" ng-model="room.password" />
 									</div>
 								</li> 
@@ -114,12 +115,16 @@
 					        </h4>
 					      </div>
 					      <div id="{{room.obj.name}}" class="panel-collapse collapse in">
-					        <div class="panel-body">
-					        	
+					        <div class="panel-body">					        	
 					       		<ul class="nav nav-pills nav-stacked" ng-repeat="user in room.users">
 					 				<li class="active">
-					 					<img class="oneline" ng-src="/users/{{user}}/image" onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
-					 					<h5 class="oneline">{{user}}</h5>
+					 					<img class="oneline" 
+					 						ng-src="/users/{{user}}/image" 
+					 						onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
+					 					<h5 class="oneline" style="font-weight: bold;">{{user}}</h5>
+					 					<span ng-show="currentRoom.obj.ownerId == principal.id &amp;&amp; user != principal.name &amp;&amp; currentRoom.obj.name == room.obj.name"
+					 						ng-click="ct.banUser(user)"
+							 				class="oneline glyphicon glyphicon-remove-circle"/>		 					
 					 				</li>  	
 					   			</ul> 
 					        </div>
@@ -128,6 +133,25 @@
 					  </div>  
 												   
 				</div> 	 
+				
+				<div class="modal fade" id="mycomplain" role="dialog">
+					<div class="modal-dialog" >
+						<div class="modal-content">
+							<div class="modal-header">							
+								<h4 class="modal-title">Write a complain</h4>
+							</div>
+							<div class="modal-body">
+								<label for="reason">Reason:</label>
+								<input id="reason" ng-model="complain.reason" />
+								<button type="button" class="btn btn-default" ng-click="ct.complainOnMessage()">Submit complain</button>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
 				<div id="msgs_div" class="col-sm-9">
       				<h4><small>RECENT MESSAGES {{currentRoom.obj.name}}</small></h4>
       				<hr></hr>
@@ -138,17 +162,24 @@
 						 		<img class="oneline" ng-src="/users/{{message.owner}}/image" 
 						 			onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
 						 		<h5 class="oneline"> 
-						 			<h5 class="oneline" style="color:green">
+						 			<h5 class="oneline" style="color:green;font-weight: bold;">
 						 				{{message.owner}}
 						 			</h5> 
 						 			({{message.serverTime}}): {{message.text}}
-						 			<span ng-show="message.ownerId == principal.id" ng-click="ct.removeMessage(message)" class="oneline glyphicon glyphicon-remove"/>						 			
-						 			<span ng-show="message.ownerId == principal.id" ng-click="ct.startEdit(message)" class="oneline glyphicon glyphicon-edit"/>
-						 									 			
+						 			<span ng-show="message.ownerId == principal.id || currentRoom.obj.ownerId == principal.id" 
+						 				ng-click="ct.removeMessage(message)" 
+						 				class="oneline glyphicon glyphicon-remove"/>						 			
+						 			<span ng-show="message.ownerId == principal.id || currentRoom.obj.ownerId == principal.id"
+						 				ng-click="ct.startEdit(message)" 
+						 				class="oneline glyphicon glyphicon-edit"/>
+						 			<span ng-click="complain.message = message"
+						 				class="oneline glyphicon glyphicon-thumbs-down"
+						 				data-toggle="modal"
+						 				data-target="#mycomplain"/>
 						 		</h5>
-						 	</li>  	
+						 	</li>
 						</ul>
-					</div>		
+					</div>
 					<p>
 					<input style="width: 93%;" 
 						   id = "text"

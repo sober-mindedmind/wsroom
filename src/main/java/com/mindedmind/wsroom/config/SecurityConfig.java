@@ -18,15 +18,13 @@ import com.mindedmind.wsroom.service.impl.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, 
-							proxyTargetClass = true,
-							securedEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true, securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter
 {
 	@Autowired UserRepository userRepository;
-
+		
 	@Override protected void configure(HttpSecurity http) throws Exception
-	{
+	{		
 		 http
          .authorizeRequests()
              .antMatchers("/users/registration", "/css/*", "/js/*").permitAll()
@@ -55,5 +53,4 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
 	{ 
 		auth.userDetailsService(userDetailsServiceBean());
 	}
-
 }
