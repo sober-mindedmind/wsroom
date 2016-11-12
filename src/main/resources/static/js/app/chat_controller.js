@@ -28,14 +28,37 @@ angular.module('ChatModule').controller('ChatController',
 			$scope.notification = ''
 			$scope.complain = {}
 				
+			$scope.selectedUser = 'Some user'
 			var self = this
 			var typedChars = 0
 			var editableMessage = null
 			var edit = false
-						
+								
+		
+			this.uploadFile = function(file)
+			{			
+				var xhr = new XMLHttpRequest();
+			    var fd = new FormData();
+			    xhr.open("POST", '/rooms/' + $scope.currentRoom.obj.name + '/files', true);
+			    xhr.onreadystatechange = function()
+			    {
+			        if (xhr.readyState == 4 && xhr.status == 200)
+			        {
+			            console.log(xhr.responseText);
+			        }
+			    };
+			    fd.append("file", $('#file')[0].files[0]);
+			    xhr.send(fd);
+			}
+			
 			this.complainOnMessage = function()
 			{
 				ComplainService.complainOnMessage($scope.complain.message.id, $scope.complain.reason)
+			}
+			
+			this.selectUser = function(user)
+			{
+				$scope.selectedUser = user
 			}
 			
 			/** Fetches all rooms created in the application */
@@ -151,9 +174,24 @@ angular.module('ChatModule').controller('ChatController',
 			 			var receivedMsg = JSON.parse(frame.body)
 			 			findMessage(receivedMsg.id, function(messages, msg){msg.text = receivedMsg.text});	
 			 			$scope.$apply()
+			 		},
+			 		
+			 		onfilesent : function(frame)
+			 		{
+			 			var fileLink = JSON.parse(frame.body)
+			 			if (fileLink.status =='REMOVED')
+			 			{
+			 				findMessage(fileLink.id, function(messages, msg){Util.removeElement(messages, msg)});
+			 			}
+			 			else
+			 			{
+				 			fileLink.file = true
+				 			$scope.currentRoom.messages.push(fileLink)
+			 			}
+			 			$scope.$apply()		 			
 			 		}
 				}
-				ChatService.connection.subscribe(room, callbacks)
+				ChatService.connection.subscribe(room, callbacks, $scope.principal)
 			}
 			this.unsubscribe = function(room)
 			{
@@ -239,9 +277,9 @@ angular.module('ChatModule').controller('ChatController',
 					{
 						var self = this
 						UserService.subscribeOnRooms(rooms).then(function()
-						{
-							this.fetchSubscribedRooms(false);
+						{							
 							rooms.forEach(function(room){self.subscribe(room.name)})
+							this.fetchSubscribedRooms(false);
 						})
 					}
 				}

@@ -25,7 +25,8 @@ angular.module('ChatModule')
 				},
 				removeMessage : function(msg)
 				{
-					return deferResult(function(){return $http['delete']("/messages/" + msg.id + '?room=' + msg.room)})
+					return deferResult(function(){return $http['delete']("/messages/" + msg.id + '?room=' 
+							+ msg.room + (msg.hash ? '&hash=' + msg.hash : ''))})
 				},
 				updateMessage : function(msg)
 				{

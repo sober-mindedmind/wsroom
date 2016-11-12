@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService
 	}
 
 	@Override public void save(User user)
-	{
+	{	
 		user.setPhoto(ImageUtils.resize(user.getPhoto(), 25, 25));
 		userRepository.save(user);
 	}

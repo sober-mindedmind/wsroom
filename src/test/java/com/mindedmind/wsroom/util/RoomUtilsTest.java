@@ -1,4 +1,4 @@
-package com.wsroom.util;
+package com.mindedmind.wsroom.util;
 
 import static org.junit.Assert.*;
 

@@ -7,6 +7,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import com.mindedmind.wsroom.dto.ChatMessageDto;
+import com.mindedmind.wsroom.dto.FileLink;
 import com.mindedmind.wsroom.dto.TypingDto;
 import com.mindedmind.wsroom.dto.UserDto;
 
@@ -71,5 +72,10 @@ public class EventNotifier
 	public void notifyTyping(String userName, String room)
 	{
 		messagingTemplate.convertAndSend("/topic/typing/" + room, new TypingDto(userName , room));
+	}
+	
+	public void notifyFileSent(String roomName, FileLink link)
+	{
+		messagingTemplate.convertAndSend("/topic/file_download/" + roomName, link);
 	}
 }

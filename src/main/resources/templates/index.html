@@ -83,7 +83,7 @@
 									<h4 class="oneline" >{{room.name}} ({{room.usersCount}}) {{room.description}}</h4>							
 									<span ng-show="room.hasPassword" class="oneline glyphicon glyphicon-lock"/>									
 									<div ng-show="room.checked &amp;&amp; room.hasPassword">							
-										<h5><small>This room is under password. Type the password in order to connect</small></h5>
+										<h5><small>This room is under a password. Type the password in order to connect</small></h5>
 										<input class="form-control" type="password" ng-model="room.password" />
 									</div>
 								</li> 
@@ -121,7 +121,9 @@
 					 					<img class="oneline" 
 					 						ng-src="/users/{{user}}/image" 
 					 						onerror="if (this.src != '/static/img/def_img.jpeg') this.src = '/img/def_img.jpeg';" />
-					 					<h5 class="oneline" style="font-weight: bold;">{{user}}</h5>
+					 					<h5 class="oneline" 
+						 					style="font-weight: bold; {{(selectedUser == user &amp;&amp; currentRoom.obj.name == room.obj.name) &amp;&amp; 'color:orange;'}}" 
+						 					ng-click="ct.selectUser(user)">{{user}}</h5>			 			
 					 					<span ng-show="currentRoom.obj.ownerId == principal.id &amp;&amp; user != principal.name &amp;&amp; currentRoom.obj.name == room.obj.name"
 					 						ng-click="ct.banUser(user)"
 							 				class="oneline glyphicon glyphicon-remove-circle"/>		 					
@@ -129,8 +131,8 @@
 					   			</ul> 
 					        </div>
 					      </div>
-					    </div>					
-					  </div>  
+					    </div>
+					  </div>
 												   
 				</div> 	 
 				
@@ -165,7 +167,8 @@
 						 			<h5 class="oneline" style="color:green;font-weight: bold;">
 						 				{{message.owner}}
 						 			</h5> 
-						 			({{message.serverTime}}): {{message.text}}
+						 			({{message.serverTime}}): {{message.text}}						
+						 			<a href="/files/{{message.hash}}" ng-show="message.file == true" download="{{message.fileName}}" >download</a>						 			
 						 			<span ng-show="message.ownerId == principal.id || currentRoom.obj.ownerId == principal.id" 
 						 				ng-click="ct.removeMessage(message)" 
 						 				class="oneline glyphicon glyphicon-remove"/>						 			
@@ -180,14 +183,16 @@
 						 	</li>
 						</ul>
 					</div>
-					<p>
+					<p>					
 					<input style="width: 93%;" 
 						   id = "text"
 						   onkeydown="var elem = document.getElementById('msgs_list');elem.scrollTop = elem.scrollHeight;" 
 						   ng-model="messageContent" 
 						   ng-keyup="$event.keyCode == 13 ? ct.sendMessage() : ct.startTyping()"
 						   class="oneline" />
-					<button class="oneline btn btn-default" type="button" ng-click="ct.sendMessage()"> SEND </button>
+					<button class="oneline btn btn-default" type="button" ng-click="ct.sendMessage()"> SEND </button>						
+					<input id="file" type="file" name="file" multiple="multiple">Choose file</input>											
+					<button type="button" class="btn btn-default" ng-click="ct.uploadFile()">Click to upload</button>
 					</p>
 					<div class="alert alert-info fade in" ng-show="notification != ''">
 					    <strong>{{notification}}</strong>

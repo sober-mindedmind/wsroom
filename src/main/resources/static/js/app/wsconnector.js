@@ -42,6 +42,7 @@ WSConnection.prototype.subscribe = function (room, callbacks)
 	this.stompClient.subscribe(Path.USER_LEAVE_TOPIC_DEST + room, callbacks.onuserleave);	
 	this.stompClient.subscribe(Path.DELETE_MESSAGE_TOPIC_DEST + room, callbacks.ondeletemsg);
 	this.stompClient.subscribe(Path.UPDATE_MESSAGE_TOPIC_DEST + room, callbacks.onupdatemsg);
+	this.stompClient.subscribe('/topic/file_download/' + room, callbacks.onfilesent);
 }
 
 WSConnection.prototype.disconnect = function()

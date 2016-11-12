@@ -6,6 +6,7 @@ import static com.mindedmind.wsroom.util.EntityUtils.notNull;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mindedmind.wsroom.domain.Message;
 import com.mindedmind.wsroom.repository.MessageRepository;
@@ -21,6 +22,7 @@ public class MessagePermissionEvaluator
 		this.messageRepository = messageRepository;
 	}
 
+	@Transactional
 	public boolean canModify(Long id, Authentication auth)
 	{
 		Message msg = messageRepository.findMessage((Long) id);

@@ -19,6 +19,7 @@ import com.mindedmind.wsroom.dto.ChatMessageDto;
 import com.mindedmind.wsroom.dto.ComplaintDto;
 import com.mindedmind.wsroom.service.ChatService;
 import com.mindedmind.wsroom.service.ComplaintService;
+import com.mindedmind.wsroom.service.FileStore;
 import com.mindedmind.wsroom.wsevent.EventNotifier;
 
 @RestController
@@ -30,22 +31,30 @@ public class MessageController
 	
 	private final EventNotifier notifier;	
 
-	public MessageController(ComplaintService complaintService, ChatService chatService, EventNotifier notifier)
+	private final FileStore fileStore;
+	
+	public MessageController(ComplaintService complaintService, 
+							 ChatService chatService, 
+							 EventNotifier notifier, 
+							 FileStore fileStore)
 	{
 		this.complaintService = complaintService;
 		this.notifier = notifier;
 		this.chatService = chatService;
+		this.fileStore = fileStore;
 	}
 	
 	@DeleteMapping(value = "/messages/{msgId}", params = "room")
 	@ResponseStatus(HttpStatus.OK)
 	public void removeMessage(@PathVariable("msgId") Long msgId,
-							  @RequestParam("room") String room)
+							  @RequestParam("room") String room, 
+							  @RequestParam(value = "hash", required = false) String hash)
 	{
 	 	chatService.deleteMessage(msgId);
 	 	ChatMessageDto msgDto = new ChatMessageDto();
 	 	msgDto.setId(msgId);
 	 	msgDto.setRoom(room);
+	 	fileStore.removeFile(hash);
 		notifier.notifyDeleteMessage(room , msgDto);
 	}
 	

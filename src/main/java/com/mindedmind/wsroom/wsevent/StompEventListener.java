@@ -46,12 +46,14 @@ public class StompEventListener
 		{		
 			String roomName = extractRoom(header.getDestination());			
 			if (!roomPermissionEval.isBanned(subEvent.getUser().getName(), roomName))
-			{
+			{					
 				chatService.activeUser(header.getUser().getName() , roomName);
 				notifier.notifyUserIsActive(roomName , header.getUser().getName());
-				LOGGER.debug("User '{}' has been subscribed", header.getUser().getName());				
+				LOGGER.info("User '{}' has been subscribed to '{}' destination", header.getUser().getName(), 
+						header.getDestination());				
 			}
 		}
+		System.out.println(header.getDestination());
 	}
 	
 	@EventListener

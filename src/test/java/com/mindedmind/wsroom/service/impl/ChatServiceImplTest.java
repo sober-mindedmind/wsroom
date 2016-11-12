@@ -1,4 +1,4 @@
-package com.wsroom.service.impl;
+package com.mindedmind.wsroom.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -20,9 +20,6 @@ import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.repository.MessageRepository;
 import com.mindedmind.wsroom.repository.RoomRepository;
 import com.mindedmind.wsroom.repository.UserRepository;
-import com.mindedmind.wsroom.service.RoomService;
-import com.mindedmind.wsroom.service.impl.ChatServiceImpl;
-import com.mindedmind.wsroom.service.impl.SubscriptionException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ChatServiceImplTest

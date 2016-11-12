@@ -4,12 +4,18 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.HttpStatus.CREATED;
 
+import java.io.File;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -25,15 +31,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.mindedmind.wsroom.domain.Message;
 import com.mindedmind.wsroom.domain.Room;
 import com.mindedmind.wsroom.domain.User;
 import com.mindedmind.wsroom.dto.ChatMessageDto;
+import com.mindedmind.wsroom.dto.FileLink;
 import com.mindedmind.wsroom.dto.RoomDto;
 import com.mindedmind.wsroom.dto.TypingDto;
 import com.mindedmind.wsroom.dto.UserDto;
+import com.mindedmind.wsroom.dto.FileLink.Status;
 import com.mindedmind.wsroom.service.ChatService;
+import com.mindedmind.wsroom.service.FileStore;
 import com.mindedmind.wsroom.service.RoomService;
 import com.mindedmind.wsroom.service.UserService;
 import com.mindedmind.wsroom.service.impl.UserDetailsImpl;
@@ -42,6 +52,8 @@ import com.mindedmind.wsroom.wsevent.EventNotifier;
 @Controller
 public class ChatController
 {	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ChatController.class);
+	
 	private final ChatService chatService;
 		
 	private final UserService userService;
@@ -49,16 +61,20 @@ public class ChatController
 	private final RoomService roomService;
 		
 	private final EventNotifier notifier;
-			
+	
+	private final FileStore fileStore;
+	
 	public ChatController(ChatService chatService, 
 						  UserService userService,
 						  RoomService roomService,
-						  EventNotifier notifier)
+						  EventNotifier notifier,
+						  FileStore fileStore)
 	{
 		this.chatService = chatService;
 		this.userService = userService;
 		this.roomService = roomService;
 		this.notifier = notifier;		
+		this.fileStore = fileStore;
 	}
 		
 	@MessageMapping("/chat/{room}")
@@ -86,7 +102,7 @@ public class ChatController
 			
 			/* send to /topic/chat/{room} */
 			notifier.notifySendMessage(messageDto , roomName);
-		}		
+		}
 	}
 		
 	@MessageMapping("/typing/{room}")
@@ -231,4 +247,53 @@ public class ChatController
 				.map(r -> r.getName())
 				.collect(toSet());
 	}
+	
+	@PostMapping("/rooms/{room}/files")
+	@ResponseBody
+	public void uploadFile(@PathVariable("room") String room,
+						   @AuthenticationPrincipal(expression = "user") User principal,
+						   @RequestParam(name = "file") MultipartFile file) throws IOException			
+	{		
+		FileLink fileLink = new FileLink();
+		Date currentData = new Date();
+		String hash = fileStore.save(file.getInputStream() , file.getName() , 100000, 
+			   (h, fileInfo) -> 
+			   {
+				   /* cancel file download process */
+				   fileLink.setStatus(Status.REMOVED);
+				   notifier.notifyFileSent(room, fileLink);
+			   });
+		fileLink.setHash(hash);		
+		fileLink.setFileName(file.getName());
+		fileLink.setText(String.format("'%s' is sending the file '%s' ", principal.getName(), file.getOriginalFilename()));
+		fileLink.setOwner(principal.getName());
+		fileLink.setOwnerId(principal.getId());
+		fileLink.setRoom(room);		
+		fileLink.setServerTime(currentData.toString());
+		
+		Message msg = new Message();
+		msg.setText(fileLink.getText());
+		msg.setTime(currentData);
+		msg.setOwner(principal);
+		chatService.saveMessage(msg, room);
+		fileLink.setId(msg.getId());
+		notifier.notifyFileSent(room , fileLink);
+	}
+		
+	@GetMapping(value = "/files/{id}")
+	@ResponseBody
+	public void downloadFile(@PathVariable("id") String id,
+							 HttpServletResponse response) throws IOException 
+	{		
+		File file = fileStore.getFileInfo(id);		
+		if (file != null)
+		{
+			response.setContentType("application/octet-stream");
+			response.setContentLengthLong(file.length());
+			response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\")", file.getName()));
+			fileStore.transfer(id , response.getOutputStream());
+			LOGGER.info("The file '{}' has been sent to user", file.getName());
+		}		
+	}
+	
 }
